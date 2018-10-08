@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="http://gitee.com/orient01/icons/raw/master/favicon.ico?v=5.1.4">
+
+
+
+
+
+
+  <meta name="keywords" content="OpenGL," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺">
+<meta name="keywords" content="OpenGL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用GLFW与GLAD创建窗口并绘制三角形">
+<meta property="og:url" content="orient.ren/opengl-glfw-glad.html">
+<meta property="og:site_name" content="Orient">
+<meta property="og:description" content="最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1798907-36d9926578e52b22.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1798907-3e79c3e9034e02eb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2018-10-08T07:32:10.779Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用GLFW与GLAD创建窗口并绘制三角形">
+<meta name="twitter:description" content="最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1798907-36d9926578e52b22.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="orient.ren/opengl-glfw-glad.html"/>
+
+
+
+
+
+  <title>使用GLFW与GLAD创建窗口并绘制三角形 | Orient</title>
+  
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?b95d2dba2343bdc300e16e22f2427bbf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Orient</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">Blankness is unlimitied possibilities.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="orient.ren/opengl-glfw-glad.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Orient">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="http://gitee.com/orient01/icons/raw/master/header.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Orient">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用GLFW与GLAD创建窗口并绘制三角形</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-04T22:11:49+08:00">
+                2017-07-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/OpenGL/" itemprop="url" rel="index">
+                    <span itemprop="name">OpenGL</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3,109
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  12
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
+<a id="more"></a>
+<h1>创建窗口</h1>
+
+<p>1、首先我们引入必要的头文件：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#include "glad.h"
+#include &lt;GLFW/glfw3.h&gt;
+</code></pre>
+
+<p><strong>请确保GLAD头文件的引入在GLFW之前，GLAD的头文件包含了正确的OpenGL头文件(例如<code>GL/gl.h</code>)，所以需要在其他依赖于OpenGL的头文件之前引入GLAD</strong></p>
+<p>2、实例化GLFW窗口</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">int main()
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // Mac必须添加此行，Windows忽略
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    return 0;
+}
+</code></pre>
+
+<p>前两行代码指定了OpenGL的主版本和次版本号(4.1)，第三行代表着使用核心模式(Core-profile)，意味着我们只能使用OpenGL功能的一个子集（没有我们不再需要的向后兼容特性）。</p>
+<p>3、接下来创建一个窗口对象，它存放了所有和窗口相关的数据，而且会被GLFW的其他函数频繁调用</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+if(window == NULL)
+{
+    std::cout &lt;&lt; "Failed to create GLFW window" &lt;&lt; std::endl;
+    glfwTerminate();
+    return -1;
+}
+glfwMakeContexCurrent(window);
+</code></pre>
+
+<p>glfwCreateWindow函数，前两个参数是窗口的宽高，第三个参数是这个窗口的命名，后两个暂时忽略，返回了一个GLFWwindow对象。glfwMakeContexCurrent函数告诉GLFW将窗口的上下文设置为当前线程的主上下文。</p>
+<p>4、GLAD是用来管理OpenGL的函数指针的，所以调用任何OpenGL函数之前需要初始化GLAD</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+{
+    std::cout &lt;&lt; "Failed to initialize GLAD" &lt;&lt; std::endl;
+    return -1;
+}
+</code></pre>
+
+<p>我们给GLAD传入了用来加载系统相关的OpenGL函数指针地址的函数。GLFW给我们的是<code>glfwGetProcAdress</code>，它根据我们编译的系统定义了正确的函数。</p>
+<p>5、视口</p>
+<p>在开始渲染之前必须告诉OpenGL渲染窗口(Viewport)的尺寸大小，这样OpenGL才能知道怎样根据窗口大小显示数据和坐标。</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 此函数设置窗口的维度(Dimension)
+glViewport(0, 0, 800, 600);
+</code></pre>
+
+<p>前两个参数控制窗口左下角位置，后两个控制渲染窗口的宽高（像素）。也可将视口维度设置比GLFW窗口维度小，这样子之后所有的OpenGL渲染将会在一个更小的窗口中显示，这样子的话我们也可以将一些其它元素显示在OpenGL视口之外。</p>
+<p>6、对窗口注册回调函数(CallbackFunction)</p>
+<p>函数注册后会在每次窗口大小改变的时候调用，视口也会随之调整</p>
+<p>函数原型如下：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+</code></pre>
+
+<p>进行注册，告诉GLFW每当窗口调整时调用此函数：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+</code></pre>
+
+<p>7、为了使图像能够持续显示而不是一闪即逝，我们需要写一个渲染循环，使得GLFW在退出之前一直保持运行</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">while(!glfwWindowShouldClose(window))
+{
+    glfwSwapBuffers(window);
+    glfwPollEvents();    
+}
+</code></pre>
+
+<p><code>glfwWindowShouldClose</code>函数在每次循环开始前检查一次GLFW是否被要求退出，是的话返回<code>true</code>，循环结束</p>
+<p><code>glfwPollEvents</code>函数检查是否有触发事件，比如键盘、鼠标等信号输入，然后更新窗口状态，调用相应的回调函数（可通过回调方法手动设置）。</p>
+<p><code>glfwSwapBuffers</code>函数会交换颜色缓冲</p>
+<p>8、渲染结束后释放所有资源</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glfwTerminate();
+return 0;
+</code></pre>
+
+<p><strong>至此，窗口创建完成</strong></p>
+<p>接下来我们进行一些完善工作</p>
+<p>9、接下来我们添加一个触发时间，当用户按下<code>Esc</code>键时关闭窗口。</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">void processInput(GLFWwindow *window)
+{
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+</code></pre>
+
+<p><code>glfwGetKey</code>函数需要一个窗口以及一个按键作为输入。这个函数将会返回这个案件是否正在被按下，我们将其定义在<code>processInput</code>函数当中</p>
+<p>接下来在渲染循环的每一个迭代中调用<code>processInput</code>：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">while (!glfwWindowShouldClose(window))
+{
+    processInput(window);
+
+    // 这里是渲染指令
+    ...
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+</code></pre>
+
+<p>10、我们使用一个自定义的颜色清空屏幕，使得在每个新的渲染迭代开始后清除上一次渲染结果，并显示我们自定义的颜色</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+glClear(GL_COLOR_BUFFER_BIT);
+</code></pre>
+
+<h1>渲染一个三角形</h1>
+
+<p>开始绘制之前，我们需要给OpenGL输入一些顶点数据（范围在[-1, 1]，需要自行进行坐标变换）。我们需要渲染一个三角形，因此我们需要三个顶点位置，将它定义为一个<code>float</code>数组：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 由于我们绘制的是一个2D三角形，因此，将其顶点的z坐标都设置为0
+float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+</code></pre>
+
+<p>接下来使用<code>glGenBuffers</code>函数和一个缓冲ID生成一个VBO对象，并使用<code>glBindBuffer</code>函数把新创建的缓冲绑定到<code>GL_ARRAY_BUFFER</code>目标上：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int VBO;
+glGenBuffers(1, &amp;VBO);
+glBindBuffer(GL_ARRAY_BUFFER, VBO);  
+</code></pre>
+
+<p>从这一刻起，我们使用的任何（在<code>GL_ARRAY_BUFFER</code>目标上的）缓冲调用都会用来配置当前绑定的缓冲(VBO)。然后我们可以调用glBufferData函数，它会把之前定义的顶点数据复制到缓冲的内存中：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+</code></pre>
+
+<p>第一个参数是目标缓冲的类型，顶点缓冲对象当前绑定到<code>GL_ARRAY_BUFFER</code>目标上。</p>
+<p>第二个参数指定传输数据大小。</p>
+<p>第三个参数是我们实际发送的数据。</p>
+<p>第四个参数指定了显卡管理数据的方式，有一下三种形式：<br><code>GL_STATIC_DRAW</code>：数据不会或几乎不改变。<br><code>GL_DYNAMIC_DRAW</code>：数据会改变很多。<br><code>GL_STREAM_DRAW</code>：数据每次绘制都会改变。</p>
+<h2>顶点着色器</h2>
+
+<p>首先用<code>GLSL</code>(OoenGL Shading Language)编写顶点着色器，然后编译这个着色器。下面给出一个非常基础的顶点着色器源代码：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
+layout (location = 0) in vec3 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+}
+</code></pre>
+
+<p>首先申明OpenGL版本4.1（对应410）。<br>接下来使用<code>in</code>关键字，在顶点着色器中声明所有的输入顶点属性(Input Vertex Attribute)。现在我们只关心位置(Position)数据，所以我们只需要一个顶点属性。GLSL有一个向量数据类型，它包含1到4个<code>float</code>分量，包含的数量可以从它的后缀数字看出来。由于每个顶点都有一个3D坐标，我们就创建一个<code>vec3</code>输入变量<code>aPos</code>。我们同样也通过<code>layout (location = 0)</code>设定了输入变量的位置值(Location)你后面会看到为什么我们会需要这个位置值。</p>
+<h2>编译着色器</h2>
+
+<p>先创建一个着色器对象，注意还是用ID来引用。所以我们储存这个顶点着色器为<code>unsigned int</code>，然后用<code>glCreateShader</code>创建这个着色器：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int vertexShader;
+vertexShader = glCreateShader(GL_VERTEX_SHADER);
+</code></pre>
+
+<p>我们把需要创建的着色器类型以参数形式提供给<code>glCreateShader</code>。由于我们正在创建一个顶点着色器，传递的参数是<code>GL_VERTEX_SHADER</code>。</p>
+<p>接下来把着色器源码附加到着色器对象上，并编译它：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glShaderSource(vertexShader, 1, &amp;vertexShaderSource, NULL);
+glCompileShader(vertexShader);
+</code></pre>
+
+<p><code>glShaderSource</code>函数把要编译的着色器对象作为第一个参数。第二参数指定了传递的源码字符串数量，这里只有一个。第三个参数是顶点着色器真正的源码，第四个参数我们先设置为<code>NULL</code>。</p>
+<h2>片段着色器</h2>
+
+<p>先给出片段着色器源码：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+} 
+</code></pre>
+
+<p>片段着色器只需要一个输出变量，这个变量是一个4分量向量，它表示的是最终的输出颜色，我们应该自己将其计算出来。我们可以用<code>out</code>关键字声明输出变量，这里我们命名为<code>FragColor</code>。下面，我们将一个alpha值为1.0(1.0代表完全不透明)的橘黄色的<code>vec4</code>赋值给颜色输出。</p>
+<p>编译片段着色器的过程与顶点着色器类似，只不过我们使用<code>GL_FRAGMENT_SHADER</code>常量作为着色器类型：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int fragmentShader;
+fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+glShaderSource(fragmentShader, 1, &amp;fragmentShaderSource, NULL);
+glCompileShader(fragmentShader);
+</code></pre>
+
+<h2>着色器程序</h2>
+
+<p>着色器程序对象(Shader Program Object)是多个着色器合并之后并最终链接完成的版本。如果要使用刚才编译的着色器我们必须把它们链接(Link)为一个着色器程序对象，然后在渲染对象的时候激活这个着色器程序。已激活着色器程序的着色器将在我们发送渲染调用的时候被使用。</p>
+<p>创建程序对象：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int shaderProgram;
+shaderProgram = glCreateProgram();
+</code></pre>
+
+<p><code>glCreateProgram</code>函数创建一个程序，并返回新创建程序对象的ID引用。现在我们需要把之前编译的着色器附加到程序对象上，然后用<code>glLinkProgram</code>链接它们：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glAttachShader(shaderProgram, vertexShader);
+glAttachShader(shaderProgram, fragmentShader);
+glLinkProgram(shaderProgram);
+</code></pre>
+
+<p>最后调用<code>glUseProgram</code>函数，激活程序：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glUseProgram(shaderProgram);
+</code></pre>
+
+<p>着色器对象链接到程序对象以后，需要删除着色器对象：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glDeleteShader(vertexShader);
+glDeleteShader(fragmentShader);
+</code></pre>
+
+<h2>链接定点属性</h2>
+
+<p>顶点着色器允许我们指定任何以顶点属性为形式的输入。这使其具有很强的灵活性的同时，它还的确意味着我们必须手动指定输入数据的哪一个部分对应顶点着色器的哪一个顶点属性。所以，我们必须在渲染前指定OpenGL该如何解释顶点数据。</p>
+<p>我们的顶点缓冲数据会被解析为下面这样子：<br><img src="http://upload-images.jianshu.io/upload_images/1798907-36d9926578e52b22.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image"></p>
+<p>因此使用<code>glVertexAttribPointer</code>函数告诉OpenGL该如何解析顶点数据：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+</code></pre>
+
+<p>第一个参数指定我们要配置的顶点属性</p>
+<p>第二个参数指定顶点属性的大小。</p>
+<p>第三个参数指定数据的类型</p>
+<p>第四个参数定义我们是否希望数据被标准化(Normalize)。如果我们设置为<code>GL_TRUE</code>，所有数据都会被映射到0（对于有符号型signed数据是-1）到1之间。</p>
+<p>第五个参数是步长，它告诉我们在连续的顶点属性组之间的间隔。</p>
+<p>最后一个参数表示位置数据在缓冲中起始位置的偏移量(Offset)。</p>
+<p>接下来使用<code>glEnableVertexAttribArray</code>函数，以顶点属性位置值作为参数，启用定点属性。</p>
+<p>代码最终大概长这样：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 0. 复制顶点数组到缓冲中供OpenGL使用
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+// 1. 设置顶点属性指针
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+// 2. 当我们渲染一个物体时要使用着色器程序
+glUseProgram(shaderProgram);
+// 3. 绘制物体
+someOpenGLFunctionThatDrawsOurTriangle();
+</code></pre>
+
+<h2>顶点数组对象</h2>
+
+<p>Vertex Array Object(VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中。</p>
+<p><strong>OpenGL的核心模式要求我们使用VAO，所以它知道该如何处理我们的顶点输入。如果我们绑定VAO失败，OpenGL会拒绝绘制任何东西。</strong></p>
+<p>一个顶点数组对象会储存以下这些内容：</p>
+<p><code>glEnableVertexAttribArray</code>和<code>glDisableVertexAttribArray</code>的调用。<br>通过<code>glVertexAttribPointer</code>设置的顶点属性配置。<br>通过<code>glVertexAttribPointer</code>调用与顶点属性关联的顶点缓冲对象。</p>
+<p>VAO的创建类似VBO：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int VAO;
+glGenVertexArrays(1, &amp;VAO);
+</code></pre>
+
+<p>要使用VAO，只需使用<code>glBindVertexArray</code>绑定VAO。从绑定之后起，我们应该绑定和配置对应的VBO和属性指针，之后解绑VAO供之后使用。当我们打算绘制一个物体的时候，我们只要在绘制物体前简单地把VAO绑定到希望使用的设定上就行了。</p>
+<p>代码大概是这样的：</p>
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// ..:: 初始化代码（只运行一次 (除非你的物体频繁改变)） :: ..
+// 1. 绑定VAO
+glBindVertexArray(VAO);
+// 2. 把顶点数组复制到缓冲中供OpenGL使用
+glBindBuffer(GL_ARRAY_BUFFER, VBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+// 3. 设置顶点属性指针
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(0);
+
+[...]
+
+// ..:: 绘制代（渲染循环中） :: ..
+// 4. 绘制物体
+glUseProgram(shaderProgram);
+glBindVertexArray(VAO);
+someOpenGLFunctionThatDrawsOurTriangle();
+</code></pre>
+
+<h2>绘制三角形</h2>
+
+<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glUseProgram(shaderProgram);
+glBindVertexArray(VAO);
+glDrawArrays(GL_TRIANGLES, 0, 3);
+</code></pre>
+
+<p><code>glDrawArrays</code>函数第一个参数是打算绘制的图元的类型。第二个参数制订了顶点数组的起始索引，第三个参数指定我们打算绘制的顶点个数。</p>
+<p>最终三角形是长这样的：<br><img src="http://upload-images.jianshu.io/upload_images/1798907-3e79c3e9034e02eb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image"></p>
+<p>你可以在这里找到源码：<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Triangle" target="_blank">三角形</a>、<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Rectangle" target="_blank">矩形</a>。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display: block; padding: 10px 0; margin: 20px auto; width: 100%; text-align: center">
+    <img id="wechat_subscriber_qcode" src="https://gitee.com/orient01/icons/raw/master/wechat-qecode.jpg" alt="Orient wechat" style="width: 200px; max-width: 100%;"/>
+    <div>扫一扫关注微信公众号，了解更多。</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>如果此文对您有帮助，欢迎对作者进行打赏，谢谢！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="https://gitee.com/orient01/icons/raw/master/pay.JPG" alt="Orient 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/OpenGL/" rel="tag"><i class="fa fa-tag"></i> OpenGL</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+
+        
+
+        
+          
+          <div id="needsharebutton-postbottom">
+            <span class="btn">
+              <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </span>
+          </div>
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/opengl-env.html" rel="next" title="在Mac和Windows上配置OpenGL环境">
+                <i class="fa fa-chevron-left"></i> 在Mac和Windows上配置OpenGL环境
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/opengl-shaders.html" rel="prev" title="着色器的一些归纳总结">
+                着色器的一些归纳总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="lv-container" data-id="city" data-uid="MTAyMC8zNTQ1Ny8xMTk5Mw=="></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="http://gitee.com/orient01/icons/raw/master/header.jpg"
+                alt="Orient" />
+            
+              <p class="site-author-name" itemprop="name">Orient</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/Orient-ZY" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:zhyoung@live.cn" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#undefined"><span class="nav-number">1.</span> <span class="nav-text">创建窗口</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#undefined"><span class="nav-number">2.</span> <span class="nav-text">渲染一个三角形</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.1.</span> <span class="nav-text">顶点着色器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.2.</span> <span class="nav-text">编译着色器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.3.</span> <span class="nav-text">片段着色器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.4.</span> <span class="nav-text">着色器程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.5.</span> <span class="nav-text">链接定点属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.6.</span> <span class="nav-text">顶点数组对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#undefined"><span class="nav-number">2.7.</span> <span class="nav-text">绘制三角形</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Orient</span>
+
+  
+</div>
+
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i>
+<span id="busuanzi_container_site_pv">本站总访问量<span id="busuanzi_value_site_pv"></span>次</span>
+</div>
+
+<!--
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+-->
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+      <div id="needsharebutton-float">
+        <span class="btn">
+          <i class="fa fa-share-alt" aria-hidden="true"></i>
+        </span>
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+    <script type="text/javascript">
+      (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+  
+  
+  <link rel="stylesheet" href="/lib/needsharebutton/needsharebutton.css">
+
+  
+  
+  <script src="/lib/needsharebutton/needsharebutton.js"></script>
+
+  <script>
+    
+      pbOptions = {};
+      
+          pbOptions.iconStyle = "box";
+      
+          pbOptions.boxForm = "horizontal";
+      
+          pbOptions.position = "bottomCenter";
+      
+          pbOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-postbottom', pbOptions);
+    
+    
+      flOptions = {};
+      
+          flOptions.iconStyle = "box";
+      
+          flOptions.boxForm = "horizontal";
+      
+          flOptions.position = "middleRight";
+      
+          flOptions.networks = "Weibo,Wechat,Douban,QQZone,Twitter,Facebook";
+      
+      new needShareButton('#needsharebutton-float', flOptions);
+    
+  </script>
+
+  
+
+  
+
+  
+
+  
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/src/love.js"></script>
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+      }
+      else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+      }
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+</body>
+</html>
