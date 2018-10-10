@@ -2,37 +2,51 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://zhyoung.cn/phpstorm.html</loc>
+    <loc>https://zhyoung.cn/visualstudio.html</loc>
     
-    <lastmod>2018-10-10T12:09:40.092Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zhyoung.cn/pycharm.html</loc>
-    
-    <lastmod>2018-10-10T12:09:38.895Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zhyoung.cn/statistics.html</loc>
-    
-    <lastmod>2018-10-10T12:09:37.808Z</lastmod>
+    <lastmod>2018-10-10T13:25:34.196Z</lastmod>
     
   </url>
   
   <url>
     <loc>https://zhyoung.cn/ultraiso.html</loc>
     
-    <lastmod>2018-10-10T12:09:36.880Z</lastmod>
+    <lastmod>2018-10-10T13:25:29.979Z</lastmod>
     
   </url>
   
   <url>
-    <loc>https://zhyoung.cn/visualstudio.html</loc>
+    <loc>https://zhyoung.cn/statistics.html</loc>
     
-    <lastmod>2018-10-10T12:09:36.363Z</lastmod>
+    <lastmod>2018-10-10T13:25:25.953Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zhyoung.cn/pycharm.html</loc>
+    
+    <lastmod>2018-10-10T13:25:20.368Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zhyoung.cn/phpstorm.html</loc>
+    
+    <lastmod>2018-10-10T13:25:13.815Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zhyoung.cn/machine-learning.html</loc>
+    
+    <lastmod>2018-10-10T13:24:42.882Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://zhyoung.cn/anaconda.html</loc>
+    
+    <lastmod>2018-10-10T13:24:38.290Z</lastmod>
     
   </url>
   
@@ -40,20 +54,6 @@
     <loc>https://zhyoung.cn/wordpress-update.html</loc>
     
     <lastmod>2018-10-10T12:09:33.651Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zhyoung.cn/machine-learning.html</loc>
-    
-    <lastmod>2018-10-10T12:08:46.394Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://zhyoung.cn/anaconda.html</loc>
-    
-    <lastmod>2018-10-10T12:05:57.969Z</lastmod>
     
   </url>
   
