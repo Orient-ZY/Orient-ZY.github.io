@@ -1,3 +1,3 @@
-zhyoung.cn/opengl-camera.html
-zhyoung.cn/opengl-coordinate-system.html
-zhyoung.cn/ultraiso.html
+https://zhyoung.cn/opengl-camera.html
+https://zhyoung.cn/opengl-coordinate-system.html
+https://zhyoung.cn/ultraiso.html

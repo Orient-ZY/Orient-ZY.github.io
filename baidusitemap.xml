@@ -7,7 +7,7 @@
     
     
   <url>
-    <loc>zhyoung.cn/wordpress-update.html</loc>
+    <loc>https://zhyoung.cn/wordpress-update.html</loc>
     <lastmod>2018-10-08T07:32:10.783Z</lastmod>
     <data>
         <display>
@@ -19,7 +19,7 @@
          
            
              
-              <breadCrumb title="问题" url="zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
+              <breadCrumb title="问题" url="https://zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
           
         </display>
     </data>
@@ -27,7 +27,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/visualstudio.html</loc>
+    <loc>https://zhyoung.cn/visualstudio.html</loc>
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     <data>
         <display>
@@ -39,7 +39,7 @@
          
            
              
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
           
         </display>
     </data>
@@ -47,7 +47,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/ultraiso.html</loc>
+    <loc>https://zhyoung.cn/ultraiso.html</loc>
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     <data>
         <display>
@@ -59,7 +59,7 @@
          
            
              
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
           
         </display>
     </data>
@@ -67,7 +67,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/statistics.html</loc>
+    <loc>https://zhyoung.cn/statistics.html</loc>
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     <data>
         <display>
@@ -79,7 +79,7 @@
          
            
              
-              <breadCrumb title="书籍" url="zhyoung.cn/categories/%E4%B9%A6%E7%B1%8D/"/>
+              <breadCrumb title="书籍" url="https://zhyoung.cn/categories/%E4%B9%A6%E7%B1%8D/"/>
           
         </display>
     </data>
@@ -87,7 +87,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/ssh-linux.html</loc>
+    <loc>https://zhyoung.cn/ssh-linux.html</loc>
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     <data>
         <display>
@@ -99,7 +99,7 @@
          
            
              
-              <breadCrumb title="问题" url="zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
+              <breadCrumb title="问题" url="https://zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
           
         </display>
     </data>
@@ -107,7 +107,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/phpstorm.html</loc>
+    <loc>https://zhyoung.cn/phpstorm.html</loc>
     <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     <data>
         <display>
@@ -119,7 +119,7 @@
          
            
              
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
           
         </display>
     </data>
@@ -127,7 +127,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/pycharm.html</loc>
+    <loc>https://zhyoung.cn/pycharm.html</loc>
     <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     <data>
         <display>
@@ -139,7 +139,7 @@
          
            
              
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
           
         </display>
     </data>
@@ -147,7 +147,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-transform.html</loc>
+    <loc>https://zhyoung.cn/opengl-transform.html</loc>
     <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     <data>
         <display>
@@ -159,7 +159,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -167,7 +167,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-shaders.html</loc>
+    <loc>https://zhyoung.cn/opengl-shaders.html</loc>
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     <data>
         <display>
@@ -179,7 +179,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -187,7 +187,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-matrix.html</loc>
+    <loc>https://zhyoung.cn/opengl-matrix.html</loc>
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     <data>
         <display>
@@ -199,7 +199,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -207,7 +207,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-textures.html</loc>
+    <loc>https://zhyoung.cn/opengl-textures.html</loc>
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     <data>
         <display>
@@ -219,7 +219,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -227,7 +227,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-env.html</loc>
+    <loc>https://zhyoung.cn/opengl-env.html</loc>
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     <data>
         <display>
@@ -239,7 +239,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -247,7 +247,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-glfw-glad.html</loc>
+    <loc>https://zhyoung.cn/opengl-glfw-glad.html</loc>
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     <data>
         <display>
@@ -259,7 +259,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -267,7 +267,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-coordinate-system.html</loc>
+    <loc>https://zhyoung.cn/opengl-coordinate-system.html</loc>
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     <data>
         <display>
@@ -279,7 +279,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -287,7 +287,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/opengl-camera.html</loc>
+    <loc>https://zhyoung.cn/opengl-camera.html</loc>
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     <data>
         <display>
@@ -299,7 +299,7 @@
          
            
              
-              <breadCrumb title="OpenGL" url="zhyoung.cn/categories/OpenGL/"/>
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
           
         </display>
     </data>
@@ -307,7 +307,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/machine-learning.html</loc>
+    <loc>https://zhyoung.cn/machine-learning.html</loc>
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     <data>
         <display>
@@ -319,7 +319,7 @@
          
            
              
-              <breadCrumb title="书籍" url="zhyoung.cn/categories/%E4%B9%A6%E7%B1%8D/"/>
+              <breadCrumb title="书籍" url="https://zhyoung.cn/categories/%E4%B9%A6%E7%B1%8D/"/>
           
         </display>
     </data>
@@ -327,27 +327,7 @@
 
     
   <url>
-    <loc>zhyoung.cn/anaconda.html</loc>
-    <lastmod>2018-10-08T07:32:10.777Z</lastmod>
-    <data>
-        <display>
-        <title>Windows Anaconda（Python集成环境）</title>
-        <pubTime>2017-08-05T14:30:31.000Z</pubTime>
-        
-        <tag>Tools</tag>
-         
-         
-           
-             
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
-    <loc>zhyoung.cn/iterm2.html</loc>
+    <loc>https://zhyoung.cn/iterm2.html</loc>
     <lastmod>2018-10-08T07:32:10.777Z</lastmod>
     <data>
         <display>
@@ -359,7 +339,27 @@
          
            
              
-              <breadCrumb title="工具" url="zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>https://zhyoung.cn/anaconda.html</loc>
+    <lastmod>2018-10-08T07:32:10.777Z</lastmod>
+    <data>
+        <display>
+        <title>Windows Anaconda（Python集成环境）</title>
+        <pubTime>2017-08-05T14:30:31.000Z</pubTime>
+        
+        <tag>Tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
           
         </display>
     </data>
