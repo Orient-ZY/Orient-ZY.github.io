@@ -2,13 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>orient.ren/baidu_verify_DZYDQlqWaW.html</loc>
-    
-    <lastmod>2018-10-10T08:42:13.912Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>orient.ren/tags/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.785Z</lastmod>
@@ -16,14 +9,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/about/index.html</loc>
+    <loc>orient.ren/categories/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/categories/index.html</loc>
+    <loc>orient.ren/about/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
@@ -44,6 +37,13 @@
   </url>
   
   <url>
+    <loc>orient.ren/visualstudio.html</loc>
+    
+    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>orient.ren/ultraiso.html</loc>
     
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
@@ -58,9 +58,9 @@
   </url>
   
   <url>
-    <loc>orient.ren/visualstudio.html</loc>
+    <loc>orient.ren/phpstorm.html</loc>
     
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     
   </url>
   
@@ -79,20 +79,6 @@
   </url>
   
   <url>
-    <loc>orient.ren/phpstorm.html</loc>
-    
-    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>orient.ren/opengl-shaders.html</loc>
-    
-    <lastmod>2018-10-08T07:32:10.780Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>orient.ren/opengl-textures.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
@@ -107,7 +93,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-env.html</loc>
+    <loc>orient.ren/opengl-shaders.html</loc>
+    
+    <lastmod>2018-10-08T07:32:10.780Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>orient.ren/opengl-coordinate-system.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     
@@ -121,7 +114,7 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-coordinate-system.html</loc>
+    <loc>orient.ren/opengl-env.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     
@@ -142,14 +135,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/iterm2.html</loc>
+    <loc>orient.ren/anaconda.html</loc>
     
     <lastmod>2018-10-08T07:32:10.777Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/anaconda.html</loc>
+    <loc>orient.ren/iterm2.html</loc>
     
     <lastmod>2018-10-08T07:32:10.777Z</lastmod>
     
