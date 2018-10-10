@@ -9,14 +9,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/about/index.html</loc>
+    <loc>orient.ren/categories/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/categories/index.html</loc>
+    <loc>orient.ren/about/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
@@ -58,14 +58,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/pycharm.html</loc>
+    <loc>orient.ren/phpstorm.html</loc>
     
     <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/phpstorm.html</loc>
+    <loc>orient.ren/pycharm.html</loc>
     
     <lastmod>2018-10-08T07:32:10.781Z</lastmod>
     
@@ -79,7 +79,7 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-textures.html</loc>
+    <loc>orient.ren/opengl-shaders.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
@@ -93,21 +93,21 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-shaders.html</loc>
+    <loc>orient.ren/opengl-textures.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/opengl-glfw-glad.html</loc>
+    <loc>orient.ren/opengl-env.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/opengl-env.html</loc>
+    <loc>orient.ren/opengl-glfw-glad.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     
@@ -121,14 +121,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-camera.html</loc>
+    <loc>orient.ren/machine-learning.html</loc>
     
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/machine-learning.html</loc>
+    <loc>orient.ren/opengl-camera.html</loc>
     
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     
