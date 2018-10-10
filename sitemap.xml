@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>orient.ren/baidu_verify_DZYDQlqWaW.html</loc>
+    
+    <lastmod>2018-10-10T08:42:13.912Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>orient.ren/tags/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.785Z</lastmod>
@@ -9,14 +16,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/categories/index.html</loc>
+    <loc>orient.ren/about/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/about/index.html</loc>
+    <loc>orient.ren/categories/index.html</loc>
     
     <lastmod>2018-10-08T07:32:10.784Z</lastmod>
     
@@ -30,7 +37,7 @@
   </url>
   
   <url>
-    <loc>orient.ren/visualstudio.html</loc>
+    <loc>orient.ren/statistics.html</loc>
     
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     
@@ -44,13 +51,6 @@
   </url>
   
   <url>
-    <loc>orient.ren/statistics.html</loc>
-    
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>orient.ren/ssh-linux.html</loc>
     
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
@@ -58,9 +58,9 @@
   </url>
   
   <url>
-    <loc>orient.ren/phpstorm.html</loc>
+    <loc>orient.ren/visualstudio.html</loc>
     
-    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
+    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     
   </url>
   
@@ -79,6 +79,13 @@
   </url>
   
   <url>
+    <loc>orient.ren/phpstorm.html</loc>
+    
+    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>orient.ren/opengl-shaders.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
@@ -86,14 +93,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-matrix.html</loc>
+    <loc>orient.ren/opengl-textures.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/opengl-textures.html</loc>
+    <loc>orient.ren/opengl-matrix.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
@@ -121,14 +128,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/machine-learning.html</loc>
+    <loc>orient.ren/opengl-camera.html</loc>
     
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/opengl-camera.html</loc>
+    <loc>orient.ren/machine-learning.html</loc>
     
     <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     
