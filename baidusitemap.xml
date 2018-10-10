@@ -4,31 +4,8 @@
 
     
   <url>
-    <loc>https://zhyoung.cn/anaconda.html</loc>
-    <lastmod>2018-10-10T11:41:58.390Z</lastmod>
-    <data>
-        <display>
-        <title>Windows Anaconda（Python集成环境）</title>
-        <pubTime>2017-08-05T14:30:31.000Z</pubTime>
-        
-        <tag>Tools</tag>
-         
-         
-           
-             
-              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-    
-    
-    
-  <url>
     <loc>https://zhyoung.cn/wordpress-update.html</loc>
-    <lastmod>2018-10-08T07:32:10.783Z</lastmod>
+    <lastmod>2018-10-10T11:56:10.271Z</lastmod>
     <data>
         <display>
         <title>使用代理服务器解决无法升级WordPress的问题</title>
@@ -48,7 +25,7 @@
     
   <url>
     <loc>https://zhyoung.cn/visualstudio.html</loc>
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    <lastmod>2018-10-10T11:56:06.437Z</lastmod>
     <data>
         <display>
         <title>Microsoft Visual Studio 注册码</title>
@@ -67,28 +44,8 @@
 
     
   <url>
-    <loc>https://zhyoung.cn/ssh-linux.html</loc>
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
-    <data>
-        <display>
-        <title>Mac下解决ssh链接linux服务器丢包问题</title>
-        <pubTime>2017-06-29T13:08:09.000Z</pubTime>
-        
-        <tag>linux</tag>
-         
-         
-           
-             
-              <breadCrumb title="问题" url="https://zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>https://zhyoung.cn/ultraiso.html</loc>
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    <lastmod>2018-10-10T11:55:53.168Z</lastmod>
     <data>
         <display>
         <title>Windows 软碟通 UltraISO-9.65.3237 原版注册码</title>
@@ -108,7 +65,7 @@
     
   <url>
     <loc>https://zhyoung.cn/statistics.html</loc>
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    <lastmod>2018-10-10T11:55:49.082Z</lastmod>
     <data>
         <display>
         <title>统计学习方法-李航</title>
@@ -127,8 +84,28 @@
 
     
   <url>
+    <loc>https://zhyoung.cn/ssh-linux.html</loc>
+    <lastmod>2018-10-10T11:55:45.823Z</lastmod>
+    <data>
+        <display>
+        <title>Mac下解决ssh链接linux服务器丢包问题</title>
+        <pubTime>2017-06-29T13:08:09.000Z</pubTime>
+        
+        <tag>linux</tag>
+         
+         
+           
+             
+              <breadCrumb title="问题" url="https://zhyoung.cn/categories/%E9%97%AE%E9%A2%98/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://zhyoung.cn/pycharm.html</loc>
-    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
+    <lastmod>2018-10-10T11:55:42.671Z</lastmod>
     <data>
         <display>
         <title>PyCharm 破解</title>
@@ -147,28 +124,8 @@
 
     
   <url>
-    <loc>https://zhyoung.cn/opengl-transform.html</loc>
-    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
-    <data>
-        <display>
-        <title>图形的变换</title>
-        <pubTime>2017-07-20T14:35:00.000Z</pubTime>
-        
-        <tag>OpenGL</tag>
-         
-         
-           
-             
-              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>https://zhyoung.cn/phpstorm.html</loc>
-    <lastmod>2018-10-08T07:32:10.781Z</lastmod>
+    <lastmod>2018-10-10T11:55:39.032Z</lastmod>
     <data>
         <display>
         <title>PHPStorm 破解版</title>
@@ -187,12 +144,12 @@
 
     
   <url>
-    <loc>https://zhyoung.cn/opengl-shaders.html</loc>
-    <lastmod>2018-10-08T07:32:10.780Z</lastmod>
+    <loc>https://zhyoung.cn/opengl-transform.html</loc>
+    <lastmod>2018-10-10T11:55:08.902Z</lastmod>
     <data>
         <display>
-        <title>着色器的一些归纳总结</title>
-        <pubTime>2017-07-06T14:15:20.000Z</pubTime>
+        <title>图形的变换</title>
+        <pubTime>2017-07-20T14:35:00.000Z</pubTime>
         
         <tag>OpenGL</tag>
          
@@ -208,7 +165,7 @@
     
   <url>
     <loc>https://zhyoung.cn/opengl-textures.html</loc>
-    <lastmod>2018-10-08T07:32:10.780Z</lastmod>
+    <lastmod>2018-10-10T11:54:59.026Z</lastmod>
     <data>
         <display>
         <title>OpenGL设置纹理</title>
@@ -227,8 +184,28 @@
 
     
   <url>
+    <loc>https://zhyoung.cn/opengl-shaders.html</loc>
+    <lastmod>2018-10-10T11:54:45.487Z</lastmod>
+    <data>
+        <display>
+        <title>着色器的一些归纳总结</title>
+        <pubTime>2017-07-06T14:15:20.000Z</pubTime>
+        
+        <tag>OpenGL</tag>
+         
+         
+           
+             
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://zhyoung.cn/opengl-matrix.html</loc>
-    <lastmod>2018-10-08T07:32:10.780Z</lastmod>
+    <lastmod>2018-10-10T11:54:37.956Z</lastmod>
     <data>
         <display>
         <title>OpenGL中坐标的变换——矩阵变换</title>
@@ -247,28 +224,8 @@
 
     
   <url>
-    <loc>https://zhyoung.cn/opengl-coordinate-system.html</loc>
-    <lastmod>2018-10-08T07:32:10.779Z</lastmod>
-    <data>
-        <display>
-        <title>坐标系统</title>
-        <pubTime>2017-08-11T02:25:02.000Z</pubTime>
-        
-        <tag>OpenGL</tag>
-         
-         
-           
-             
-              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
-  <url>
     <loc>https://zhyoung.cn/opengl-glfw-glad.html</loc>
-    <lastmod>2018-10-08T07:32:10.779Z</lastmod>
+    <lastmod>2018-10-10T11:54:33.119Z</lastmod>
     <data>
         <display>
         <title>使用GLFW与GLAD创建窗口并绘制三角形</title>
@@ -288,7 +245,7 @@
     
   <url>
     <loc>https://zhyoung.cn/opengl-env.html</loc>
-    <lastmod>2018-10-08T07:32:10.779Z</lastmod>
+    <lastmod>2018-10-10T11:54:28.809Z</lastmod>
     <data>
         <display>
         <title>在Mac和Windows上配置OpenGL环境</title>
@@ -307,8 +264,28 @@
 
     
   <url>
+    <loc>https://zhyoung.cn/opengl-coordinate-system.html</loc>
+    <lastmod>2018-10-10T11:54:25.113Z</lastmod>
+    <data>
+        <display>
+        <title>坐标系统</title>
+        <pubTime>2017-08-11T02:25:02.000Z</pubTime>
+        
+        <tag>OpenGL</tag>
+         
+         
+           
+             
+              <breadCrumb title="OpenGL" url="https://zhyoung.cn/categories/OpenGL/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>https://zhyoung.cn/opengl-camera.html</loc>
-    <lastmod>2018-10-08T07:32:10.778Z</lastmod>
+    <lastmod>2018-10-10T11:54:21.574Z</lastmod>
     <data>
         <display>
         <title>摄像机</title>
@@ -328,7 +305,7 @@
     
   <url>
     <loc>https://zhyoung.cn/machine-learning.html</loc>
-    <lastmod>2018-10-08T07:32:10.778Z</lastmod>
+    <lastmod>2018-10-10T11:54:17.983Z</lastmod>
     <data>
         <display>
         <title>机器学习-周志华</title>
@@ -348,7 +325,7 @@
     
   <url>
     <loc>https://zhyoung.cn/iterm2.html</loc>
-    <lastmod>2018-10-08T07:32:10.777Z</lastmod>
+    <lastmod>2018-10-10T11:54:14.371Z</lastmod>
     <data>
         <display>
         <title>iterm2</title>
@@ -365,5 +342,28 @@
     </data>
     </url>
 
+    
+  <url>
+    <loc>https://zhyoung.cn/anaconda.html</loc>
+    <lastmod>2018-10-10T11:54:07.787Z</lastmod>
+    <data>
+        <display>
+        <title>Windows Anaconda（Python集成环境）</title>
+        <pubTime>2017-08-05T14:30:31.000Z</pubTime>
+        
+        <tag>Tools</tag>
+         
+         
+           
+             
+              <breadCrumb title="工具" url="https://zhyoung.cn/categories/%E5%B7%A5%E5%85%B7/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
+    
     
 </urlset>
