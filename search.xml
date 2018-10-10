@@ -1,1333 +1,201 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search> 
-  
-    
-    <entry>
-      <title><![CDATA[摄像机]]></title>
-      <url>/opengl-camera.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<blockquote>
-<p>在OpenGL中并没有摄像机(Camera)的概念，因此引入一个虚拟的摄像机，并自定义一个摄像机类。</p>
-</blockquote>
-<h2 id="摄像机-观察空间"><a href="#摄像机-观察空间" class="headerlink" title="摄像机/观察空间"></a>摄像机/观察空间</h2><p>在讨论摄像机/观察空间(Camera/View Space)，其实就讨论以摄像机的视角作为场景原点时场景中所有顶点的坐标。使用观察矩阵可以把所有的世界坐标变幻为相对于摄像机位置与方向的观察坐标。因此定义一个摄像机，我们需要它在世界中的位置、观察方向、一个指向它右侧的向量以及一个指向它上方的向量。其实就是以摄像机为原点创建了一个如下图所示的坐标系：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/camera_axes.png" alt="点击显示更清晰"></p>
-<h3 id="1、摄像机位置"><a href="#1、摄像机位置" class="headerlink" title="1、摄像机位置"></a>1、摄像机位置</h3><p>获取摄像机位置很简单，就是世界空间中一个指向摄像机位置的向量。我们仍然设置为之前的摄像机位置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);</span><br></pre></td></tr></table></figure>
-<p><em>注意Z轴的方向</em></p>
-<h3 id="2、摄像机方向"><a href="#2、摄像机方向" class="headerlink" title="2、摄像机方向"></a>2、摄像机方向</h3><p>我们先让摄像机指向世界场景原点: (0, 0, 0)。摄像机方向由摄像机的坐标减去它指向点的坐标得到：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);</span><br><span class="line">glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);</span><br></pre></td></tr></table></figure>
-<p><em>注意：其实摄像机方向与摄像机的指向刚好相反</em></p>
-<h3 id="3、右轴"><a href="#3、右轴" class="headerlink" title="3、右轴"></a>3、右轴</h3><p>我们需要获取一个右向量(Right Vector),它代表摄像机空间的X轴正方向。右向量的获取：先定义一个世界空间坐标中的上向量(Up Vector)，然后将其与上步得到的摄像机方向向量进行叉乘：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);</span><br><span class="line">cameraRight = glm::normalize(glm::cross(up, cameraDirection));</span><br></pre></td></tr></table></figure>
-<p><em>如果两向量的叉乘顺序交换将会得到方向相反的一个X轴负方向向量</em></p>
-<h3 id="4、上轴"><a href="#4、上轴" class="headerlink" title="4、上轴"></a>4、上轴</h3><p>将摄像机方向向量与右向量叉乘即可得到：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);</span><br></pre></td></tr></table></figure>
-<p><em>我们已经创建了所有构成观察/摄像机空间的向量。接下来我们使用这些向量就可以构建一个<code>LookAt</code>矩阵</em></p>
-<h2 id="LookAt"><a href="#LookAt" class="headerlink" title="LookAt"></a>LookAt</h2><p><em>使用矩阵的好处之一：如果使用了3个相互垂直的轴定义了一个坐标空间，那么可以用这3个轴外加一个平移向量来创建一个矩阵，并且可以用这个矩阵乘以任何向量来将其变换到那个坐标空间。<code>LookAt</code>矩阵正是如此。</em></p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/lookat.png" alt="点击显示更清晰"></p>
-<p>其中R是右向量，U是上向量，D是方向向量，P是摄像机位置向量。<em>（注意：位置向量是相反的，因为我们最终希望把世界平移到与我们自身移动的相反方向）</em>这个<code>LookAt</code>矩阵可以很高效地把所有世界坐标变幻到刚定义的观察空间。</p>
-<p><code>GLM</code>提供了这样的支持：我们只需要定义一个摄像机位置，一个目标位置和一个表示世界空间中上向量的向量，<code>GLM</code>就会创建一个LookAt矩阵，我们把它当作我们的观察矩阵：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::mat4 view;</span><br><span class="line">view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));</span><br></pre></td></tr></table></figure>
-<h2 id="自由移动摄像机"><a href="#自由移动摄像机" class="headerlink" title="自由移动摄像机"></a>自由移动摄像机</h2><p>首先我们设置一个摄像机系统，定义一些变量：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);</span><br><span class="line">glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);</span><br><span class="line">glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);</span><br></pre></td></tr></table></figure>
-<p><code>LookAt</code>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);</span><br></pre></td></tr></table></figure>
-<p>位置为之前定义的cameraPos，方向是当前位置加上刚定义的方向向量。这样就能保证无论怎么移动，摄像机都会注视着目标方向。</p>
-<p>在GLFW键盘输入定义的函数<code>processInput</code>中添加几个需要检查的按键命令：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">void processInput(GLFWwindow *window)</span><br><span class="line">&#123;</span><br><span class="line">    ...</span><br><span class="line">    float cameraSpeed = 0.05f; // adjust accordingly</span><br><span class="line">    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)</span><br><span class="line">        cameraPos += cameraSpeed * cameraFront;</span><br><span class="line">    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)</span><br><span class="line">        cameraPos -= cameraSpeed * cameraFront;</span><br><span class="line">    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)</span><br><span class="line">        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;</span><br><span class="line">    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)</span><br><span class="line">        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><em>这里对右向量进行了标准化。如果没有对这个向量进行标准化，最后的叉乘结果很根据<code>cameraFront</code>变量返回大小不同的变量。摄像机移动的速度将会发生改变。标准化后，摄像机移动就是匀速的</em></p>
-<h2 id="移动速度"><a href="#移动速度" class="headerlink" title="移动速度"></a>移动速度</h2><p>上面的移动速度是个常量，讲道理是会一直匀速移动没有问题。但实际情况是每个处理器的能力不同，有些人每秒绘制的帧数可能要比别人多，或者少，也就是以更高/低的频率调用<code>processInput</code>函数。结果就是有些人可能移动很快，有些很慢。</p>
-<p>图形程序和游戏通常会跟踪一个<em>时间差</em>(Deltatime)变量，它存储了渲染上一帧所用时间。我们把所有速度都去乘以<code>deltaTime</code>值，结果就是如果我们的<code>deltaTime</code>很大，就意味着上一帧的渲染花费了更多时间，所以这一帧的速度需要更高去平衡渲染所花去的时间。因此我们得到一个相对稳定的移动速度：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">float deltaTime = 0.0f;	// 当前帧与上一帧时间差</span><br><span class="line">float lastTime = 0.0f;	// 上一帧的时间</span><br><span class="line"></span><br><span class="line">float currentFrame = glfwGetTime();</span><br><span class="line">deltaTime = currentFrame - lastFrame;</span><br><span class="line">lastFrame = currentFrame;</span><br><span class="line"></span><br><span class="line">void processInput(GLFWwindow * window) </span><br><span class="line">&#123;</span><br><span class="line">	float cameraSpeed = 2.5f * deltaTime;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>因此我们的得到了一个更流畅点的摄像机系统。</p>
-<h2 id="视角移动"><a href="#视角移动" class="headerlink" title="视角移动"></a>视角移动</h2><p>我们根据鼠标的输入改变cameraFront向量，从而可以改变摄像机的视角。</p>
-<p>摄像机视角的改变可以通过改变欧拉角：俯仰角(Pitch)、偏航角(Yaw)和滚转角(Roll)：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/camera_pitch_yaw_roll.png" alt="点击显示更清晰"></p>
-<p>俯仰角描述我们如何往上或往下看的角。偏航角表示我们往左和往右看的程度。滚转角代表我们如何翻滚摄像机。<em>在这里我们不涉及翻滚角</em></p>
-<p>我们通过三角函数来将角度转换为方向向量：</p>
-<p>基于俯仰角：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">direction.y = sin(glm::radians(pitch));	// 先把角度转为弧度</span><br><span class="line">direction.x = cos(glm::radians(pitch));	</span><br><span class="line">direction.z = cos(glm::radians(pitch));	/</span><br></pre></td></tr></table></figure>
-<p>基于俯仰角与偏航角：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));	// 先把角度转为弧度</span><br><span class="line">direction.y = sin(glm::radians(pitch));	</span><br><span class="line">direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));</span><br></pre></td></tr></table></figure>
-<h2 id="鼠标输入"><a href="#鼠标输入" class="headerlink" title="鼠标输入"></a>鼠标输入</h2><p>偏航角与俯仰角是通过鼠标/手柄移动获得的。水平移动影响偏航角，竖直移动影响俯仰角。原理就是：存储上一帧鼠标的位置，在当前帧中计算鼠标位置与上一帧的位置相差多少。如果水平/竖直差别越大那么俯仰角或偏航角就改变越大。</p>
-<p>首先告诉GLFW隐藏光标并捕捉它：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);</span><br></pre></td></tr></table></figure>
-<p>接下来申明一个鼠标监听函数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> *p2、p3：鼠标当前位置</span><br><span class="line"> */</span><br><span class="line">void mouse_callback(GLFWwindow *window, double xpos, double ypos)</span><br></pre></td></tr></table></figure>
-<p>当用GLFW注册了回调函数后，鼠标一移动<code>mouse_callback</code>函数就会被调用：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glfwSetCursorPosCallback(window, mouse_callback);</span><br></pre></td></tr></table></figure>
-<p>在处理FPS风格摄像机的鼠标输入时，必须在最终获取方向向量之前做下面几步：</p>
-<ul>
-<li>计算鼠标距上一帧的偏移量</li>
-<li>把偏移量添加到摄像机的俯仰角和偏航角中</li>
-<li>对偏航角和俯仰角进行最大和最小值的限制</li>
-<li>计算方向向量</li>
-</ul>
-<p>第一步是计算鼠标自上一帧的偏移量。须先在程序中存储上一帧鼠标的位置，这里将其设置在屏幕中心（屏幕尺寸：800 x 600）：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float lastX = 400, lastY = 300;</span><br></pre></td></tr></table></figure>
-<p>然后在鼠标回调函数中计算当前帧和上一帧鼠标位置的偏移量：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">float xoffset = xpos - lastX;</span><br><span class="line">float yoffset = lastY - ypos;	// y坐标是从底部往顶部依次增大</span><br><span class="line">lastX = xpos;</span><br><span class="line">lastY = ypos;</span><br><span class="line"></span><br><span class="line">float sensitivity = 0.05f;	//灵敏度</span><br><span class="line">xoffset *= sensitivity;</span><br><span class="line">yoffset *= sensitivity;</span><br></pre></td></tr></table></figure>
-<p>接下来把偏移量加到全局变量<code>pitch</code>和<code>yaw</code>上：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yaw += xoffset;</span><br><span class="line">pitch += yoffset;</span><br></pre></td></tr></table></figure>
-<p>第三部给摄像机添加一些限制，防止其发生奇怪的移动（同时避免一些奇怪的问题）。对于俯仰角，要让用户不能看向高于89度的地方（在90度时视角发生逆转，所以把89度作为极限），同样也不允许小于-89度。在值超过极限值的时候将其改为极限值来实现：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if (pitch &gt; 89.0f)</span><br><span class="line">	pitch = 89.0f;</span><br><span class="line">if (pitch &lt; -89.0f)</span><br><span class="line">	pitch = -89.0f;</span><br></pre></td></tr></table></figure>
-<p>最后一步，通过俯仰角和偏航角计算得到真正的方向向量：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 front;</span><br><span class="line">front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));</span><br><span class="line">front.y = sin(glm::radians(pitch));</span><br><span class="line">front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));</span><br><span class="line">cameraFront = glm::normalize(front);</span><br></pre></td></tr></table></figure>
-<p>为了防止在运行代码开始，窗口第一次获取焦点时摄像机的抖动，设置一个<code>bool</code>变量检验是否第一次获取鼠标输入，若是，则把鼠标初始位置更新为<code>xpos</code>和<code>ypos</code>值：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">if (firstMouse) //这个变量初始值是true</span><br><span class="line">&#123;</span><br><span class="line">	lastX = xpos;</span><br><span class="line">	lastY = ypos;</span><br><span class="line">	firstMouse = false;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最后整理代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">void mouse_callback(GLFWwindow* window, double xpos, double ypos)</span><br><span class="line">&#123;</span><br><span class="line">    if(firstMouse)</span><br><span class="line">    &#123;</span><br><span class="line">        lastX = xpos;</span><br><span class="line">        lastY = ypos;</span><br><span class="line">        firstMouse = false;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    float xoffset = xpos - lastX;</span><br><span class="line">    float yoffset = lastY - ypos; </span><br><span class="line">    lastX = xpos;</span><br><span class="line">    lastY = ypos;</span><br><span class="line"></span><br><span class="line">    float sensitivity = 0.05;</span><br><span class="line">    xoffset *= sensitivity;</span><br><span class="line">    yoffset *= sensitivity;</span><br><span class="line"></span><br><span class="line">    yaw   += xoffset;</span><br><span class="line">    pitch += yoffset;</span><br><span class="line"></span><br><span class="line">    if(pitch &gt; 89.0f)</span><br><span class="line">        pitch = 89.0f;</span><br><span class="line">    if(pitch &lt; -89.0f)</span><br><span class="line">        pitch = -89.0f;</span><br><span class="line"></span><br><span class="line">    glm::vec3 front;</span><br><span class="line">    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));</span><br><span class="line">    front.y = sin(glm::radians(pitch));</span><br><span class="line">    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));</span><br><span class="line">    cameraFront = glm::normalize(front);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="缩放"><a href="#缩放" class="headerlink" title="缩放"></a>缩放</h2><p>视野(Field of View)或<code>fov</code>定义了我们能够看到的场景范围。当视野变小时，场景投影出来的空间就会见效，产生放大(Zoom In)的感觉，这里使用鼠标的滚轮来放大。同样申明一个鼠标滚轮的回调函数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)</span><br><span class="line">&#123;</span><br><span class="line">	if (fov &gt;= 1.0f &amp;&amp; fov &lt;= 45.0f)</span><br><span class="line">		fov -= yoffset;</span><br><span class="line">	if (fov &lt;= 1.0f)</span><br><span class="line">		fov = 1.0f;</span><br><span class="line">	if (fov &gt;= 45.0f)</span><br><span class="line">		fov = 45.0f;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>以上设置了缩放范围限制在<code>1.0f</code>和<code>45.0f</code>之间</p>
-<p>现在须每一帧都必须把透视矩阵上传到GPU，但现在使用fov变量作为它的视野：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);</span><br></pre></td></tr></table></figure>
-<p>记得注册鼠标滚轮回调函数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glfwSetScrollCallback(window, scroll_callback);</span><br></pre></td></tr></table></figure>
-<h2 id="摄像机类"><a href="#摄像机类" class="headerlink" title="摄像机类"></a>摄像机类</h2><p>最后的最后，我们把这个摄像机进行一次封装，以便以后调用。摄像机类可以在<a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/Camera/camera.h" target="_blank" rel="noopener">这里</a>找到。</p>
-<p>摄像机完整的项目文件可以在<a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/Camera" target="_blank" rel="noopener">这里</a>找到。</p>
-<blockquote>
-<p>如果本项目对您有所帮助，希望能够获得您的 star。万分感谢！</p>
-</blockquote>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[坐标系统]]></title>
-      <url>/opengl-coordinate-system.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<blockquote>
-<p>在了解到变换之后，开始学习坐标系统。</p>
-</blockquote>
-<h1 id="坐标系统分为五大类："><a href="#坐标系统分为五大类：" class="headerlink" title="坐标系统分为五大类："></a>坐标系统分为五大类：</h1><h2 id="局部空间-Local-Space-或被称为物体空间-Object-Space"><a href="#局部空间-Local-Space-或被称为物体空间-Object-Space" class="headerlink" title="局部空间(Local Space)或被称为物体空间(Object Space)"></a>局部空间(Local Space)或被称为物体空间(Object Space)</h2><p>指的是单个物体的坐标系统。</p>
-<h2 id="世界空间-World-Space"><a href="#世界空间-World-Space" class="headerlink" title="世界空间(World Space)"></a>世界空间(World Space)</h2><p>指多个物体同时放在一个世界的坐标系统。物体坐标从局部空间变换到世界空间是由<em>模型矩阵</em>(Model Matrix)实现的。</p>
-<p><em>模型矩阵</em>：是一种变幻矩阵，它通过对物体进行位移、缩放、旋转来将它放置在预期的位置或朝向。</p>
-<h2 id="观察空间-View-Space-或被称为视觉空间-Eye-Space-、摄像机空间-Camera-Space"><a href="#观察空间-View-Space-或被称为视觉空间-Eye-Space-、摄像机空间-Camera-Space" class="headerlink" title="观察空间(View Space)或被称为视觉空间(Eye Space)、摄像机空间(Camera Space)"></a>观察空间(View Space)或被称为视觉空间(Eye Space)、摄像机空间(Camera Space)</h2><p>将世界空间坐标转化为用户视野前方的坐标而产生的结果。也就是从摄像机视角所观察到的空间。通常由一系列的唯一和旋转的组合来完成。</p>
-<p>这些组合被存储在一个<em>观察矩阵</em>(View Matrix)里，它被用来将世界坐标变幻到观察空间坐标。</p>
-<h2 id="裁剪空间-Clip-Space"><a href="#裁剪空间-Clip-Space" class="headerlink" title="裁剪空间(Clip Space)"></a>裁剪空间(Clip Space)</h2><p>将规定范围之外的物体裁剪掉（不可视化）。它由<em>投影矩阵</em>(Projection Matrix)实现。</p>
-<p>投影分为<em>正射投影</em>和<em>透视投影</em>。</p>
-<p>创建<em>正射投影</em>矩阵可以用GLM的内置函数<code>glm::ortho</code>:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/*p1、p2：指定了平截头体的左右坐标，</span><br><span class="line"> *p3、p4：制订了平截头体的底部和顶部，</span><br><span class="line"> *p5、p6：定义了近平面和远平面的距离</span><br><span class="line"> */</span><br><span class="line">glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f);</span><br></pre></td></tr></table></figure>
-<p>创建<em>透视投影</em>矩阵可以用以下函数创建：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/*p1：定义了fov(视野：`Field of View`)的值，并且设置了观察空间的大小，一般为了真实效果，设置为45.0f，</span><br><span class="line"> *p2：设置宽高比，由视口宽除以高所得，</span><br><span class="line"> *p3、p4：设置了平截头体的近、远平面距离，通常按以下值设置。</span><br><span class="line"> */</span><br><span class="line">glm::nat4 proj = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f);</span><br></pre></td></tr></table></figure>
-<h2 id="屏幕空间-Screen-Space"><a href="#屏幕空间-Screen-Space" class="headerlink" title="屏幕空间(Screen Space)"></a>屏幕空间(Screen Space)</h2><p>屏幕空间也就是我们在屏幕上所能看见的一个窗口空间</p>
-<p><strong>一个物体的顶点坐标起始于局部空间(<code>Local Space</code>)，在这里被称为局部坐标(<code>Local Coordinate</code>)，之后会变味世界坐标(<code>World Coordinate</code>)，观察坐标(<code>View Coordinate</code>)，裁剪坐标(<code>Clip Coordinate</code>)，在最后以屏幕坐标(<code>Screen Coordinate</code>)的形式结束</strong></p>
-<p>一个顶点坐标将会根据以下过程变换到裁剪坐标：</p>
-<p><code>V(clip) = M(projection) · M(view) · M(model) · V(local)</code></p>
-<p>最后顶点应该被赋值到顶点着色器中的<code>gl_Position</code>， OpenGL将会自动进行<em>透视除法</em>和<em>裁剪</em>将其变化到<em>标准化设备坐标</em>，然后通过<code>glViewPort</code>内部的参数来将标准化设备坐标映射到屏幕坐标。</p>
-<h1 id="3D"><a href="#3D" class="headerlink" title="3D"></a>3D</h1><h2 id="模型矩阵"><a href="#模型矩阵" class="headerlink" title="模型矩阵"></a>模型矩阵</h2><p>创建一个包含位移、缩放与旋转的模型矩阵，将物体变换到全局的世界空间，下面这个模型矩阵使得物体绕x轴旋转，使它看起来像放在地上一样：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::mat4 model;</span><br><span class="line">model = glm::rotate(model, glm::radians(-55.0f), glm：：vec3(1.0f, 0.0f, 0.0f));</span><br></pre></td></tr></table></figure>
-<h2 id="观察矩阵"><a href="#观察矩阵" class="headerlink" title="观察矩阵"></a>观察矩阵</h2><p>创建一个观察矩阵，将物体在场景里稍微后移，以使得物体变成可见的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::mat4 view</span><br><span class="line">view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));</span><br></pre></td></tr></table></figure>
-<h2 id="投影矩阵"><a href="#投影矩阵" class="headerlink" title="投影矩阵"></a>投影矩阵</h2><p>最后定义一个投影矩阵，在这里使用透视投影：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">glm::mat4 projection</span><br><span class="line">projection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f);</span><br></pre></td></tr></table></figure>
-<h2 id="申明uniform变换矩阵"><a href="#申明uniform变换矩阵" class="headerlink" title="申明uniform变换矩阵"></a>申明uniform变换矩阵</h2><p>创建变换矩阵后，将它们传入着色器。首先申明一个uniform变换矩阵然后将它乘以顶点坐标：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#version 410 core</span><br><span class="line">layout (location = 0) in vec3 aPos;</span><br><span class="line">...</span><br><span class="line">uniform mat4 model;</span><br><span class="line">uniform mat4 view;</span><br><span class="line">uniform mat4 projection;</span><br><span class="line"></span><br><span class="line">void main()</span><br><span class="line">&#123;</span><br><span class="line">	gl_Position = projection * view * model * vec4(aPos, 1.0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>然后将矩阵传入着色器（通常在每次的渲染迭代中进行，因为变换矩阵会经常变动）：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">int modelLoc = glGetUniformLocation(ourShader.ID, &quot;model&quot;);</span><br><span class="line">glUnifromMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));</span><br><span class="line">...</span><br><span class="line">//观察矩阵和投影矩阵类似</span><br></pre></td></tr></table></figure>
-<h2 id="绘制旋转的立方体"><a href="#绘制旋转的立方体" class="headerlink" title="绘制旋转的立方体"></a>绘制旋转的立方体</h2><p>随时间旋转函数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5, 1.0f, 0.0f));</span><br></pre></td></tr></table></figure>
-<p>使用<code>glDrawArrays</code>绘制立方体，总共36个顶点。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glDrawArrays(GL_TRIANGLES, 0, 36);</span><br></pre></td></tr></table></figure>
-<p><strong>开始深度测试</strong></p>
-<p><em>z缓冲</em>也叫深度缓冲(Depth Buffer)，所有的深度信息都存储在其中。OpenGL会根据深度值来判断物体是否被遮挡，若是则丢弃。这个过程称为<em>深度测试</em>(Depth Testing)，开启它需要添加以下函数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glEnable(GL_DEPTH_TEST);</span><br></pre></td></tr></table></figure>
-<p>在每次迭代前需要清除深度缓冲：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);</span><br></pre></td></tr></table></figure>
-<h2 id="绘制更多立方体"><a href="#绘制更多立方体" class="headerlink" title="绘制更多立方体"></a>绘制更多立方体</h2><p>首先在一个<code>glm::vec3</code>数组中定义10个立方体位置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">glm::vec3 cubePositions[] = &#123;</span><br><span class="line">  glm::vec3( 0.0f,  0.0f,  0.0f), </span><br><span class="line">  glm::vec3( 2.0f,  5.0f, -15.0f), </span><br><span class="line">  glm::vec3(-1.5f, -2.2f, -2.5f),  </span><br><span class="line">  glm::vec3(-3.8f, -2.0f, -12.3f),  </span><br><span class="line">  glm::vec3( 2.4f, -0.4f, -3.5f),  </span><br><span class="line">  glm::vec3(-1.7f,  3.0f, -7.5f),  </span><br><span class="line">  glm::vec3( 1.3f, -2.0f, -2.5f),  </span><br><span class="line">  glm::vec3( 1.5f,  2.0f, -2.5f), </span><br><span class="line">  glm::vec3( 1.5f,  0.2f, -1.5f), </span><br><span class="line">  glm::vec3(-1.3f,  1.0f, -1.5f)  </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>在渲染循环当中调用<code>glDrawArrays</code>10次：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">for (unsigned int i = 0; i &lt; 10; i++) &#123;</span><br><span class="line">    // calculate the matrix for each object and pass it to shader before drawing</span><br><span class="line">    glm::mat4 model;</span><br><span class="line">    model = glm::translate(model, cubePositions[i]);</span><br><span class="line">    float angle = 20.0f * (i + 1);</span><br><span class="line">    model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));</span><br><span class="line">    ourShader.setMat4(&quot;model&quot;, model);</span><br><span class="line">    </span><br><span class="line">    glDrawArrays(GL_TRIANGLES, 0, 36);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最终绘制效果如下：<br><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/coordinate_system.gif" alt=""></p>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[Windows 软碟通 UltraISO-9.65.3237 原版注册码]]></title>
-      <url>/ultraiso.html</url>
-      <content type="html"><![CDATA[<h4>简体中文版：</h4>
-
-<p>名字：Guanjiu  注册码：A06C-83A7-701D-6CFC<br>用户名：王涛   注册码：7C81-1689-4046-626F</p>
-<h4>多国语言版：</h4>
-
-<p>Name：Home   Key：4BA9-0D54-214A-C938</p>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[Windows Anaconda（Python集成环境）]]></title>
-      <url>/anaconda.html</url>
-      <content type="html"><![CDATA[<p><strong>Anaconda是一个用于科学计算的Python发行版，支持 Linux, Mac, Windows系统，提供了包管理与环境管理的功能，可以很方便地解决多版本python并存、切换以及各种第三方包安装问题。Anaconda利用工具/命令conda来进行package和environment的管理，并且已经包含了Python和相关的配套工具。</strong></p>
-<a id="more"></a>
-<h1>conda将几乎所有的工具、第三方包都当做package对待，甚至包括python和conda自身！</h1>
-
-<p><a href="https://pan.baidu.com/s/1eRFO68i" target="_blank">点击此处</a>下载Anaconda3(Python3)</p>
-<p>密码：扫一扫文章下方二维码，关注公众号，回复 <em>Anaconda3</em> 即可获取密码。</p>
-<p><a href="https://pan.baidu.com/s/1qYz5xdM" target="_blank">点击此处</a>下载Anaconda2(Python2)</p>
-<p>密码：扫一扫文章下方二维码，关注公众号，回复 <em>Anaconda2</em> 即可获取密码。</p>
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[PHPStorm 破解版]]></title>
-      <url>/phpstorm.html</url>
-      <content type="html"><![CDATA[<p><strong>PhpStorm 是最好的PHP开发工具，使用它进行PHP开发将会让你感觉到编程的乐趣。</strong></p>
-<a id="more"></a>
-<p><a href="https://pan.baidu.com/s/1c1X4jD2" target="_blank">点击此处</a>下载</p>
-<p>密码：扫描文章下方二维码，关注公众号，回复 <em>PHPStorm</em> 即可获取密码。</p>
-<h1>下面是PHPStorm破解方法：</h1>
-
-<h2>1、打开DMG镜像，将app拖入应用程序</h2>
-
-<h2>2、修改<code>/etc/hosts</code>文件，添加一行：<code>0.0.0.0 account.jetbrains.com</code></h2>
-
-<h2>3、打开PHPStorm应用程序。选择Activation Code</h2>
-
-<h2>4、打开<a href="http://idea.lanyus.com" target="_blank">http://idea.lanyus.com</a>，点击获得注册码并复制到Activation Code中完成注册</h2>
-
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[PyCharm 破解]]></title>
-      <url>/pycharm.html</url>
-      <content type="html"><![CDATA[<p><strong>PyCharm是一种Python IDE，具有调试、语法高亮、Project管理、代码跳转、智能提示、自动完成、单元测试、版本控制的功能。此外，该IDE还提供了一些高级功能，以用于支持Django框架下的专业Web开发。</strong></p>
-<a id="more"></a>
-<p><a href="https://pan.baidu.com/s/1nuW5O0L" target="_blank">点击此处</a>下载</p>
-<p>密码：扫描文章下方二维码，关注公众号，回复 <em>PyCharm</em> 即可获取密码。</p>
-<h1>下面是PyCharm破解方法：</h1>
-
-<h2>1、打开DMG镜像，将app拖入应用程序</h2>
-
-<h2>2、修改<code>/etc/hosts</code>文件，添加一行：<code>0.0.0.0 account.jetbrains.com</code></h2>
-
-<h2>3、打开PyCharm应用程序。选择Activation Code</h2>
-
-<h2>4、打开<a href="http://idea.lanyus.com" target="_blank">http://idea.lanyus.com</a>，点击获得注册码并复制到Activation Code中完成注册</h2>
-
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[iterm2]]></title>
-      <url>/iterm2.html</url>
-      <content type="html"><![CDATA[<p><strong>iTerm2与Terminal都是mac os系统下的应用软件，用来运行shell这个程序。Termnial是系统自带的，iTerm2需要下载。iTerm与Terminal相比功能更强大，界面也更为美观。</strong></p>
-<a id="more"></a>
-<h2>iTerm2</h2>
-
-<p>iTerm2是一个非常好的终端模拟器，官网地址：<a href="http://iterm2.com/" target="_blank">http://iterm2.com/</a>，需要下载安装它。（如果不能访问，可以点击<a href="https://pan.baidu.com/s/1c2fBhss" target="_blank">此处下载</a>密码：扫描文章下方二维码，关注公众号，回复 <em>iterm2</em> 即可获取密码）</p>
-<h2>安装zsh</h2>
-
-<p>打开iTerm，输入：<code>brew install zsh zsh-completions</code></p>
-<p>这是用Homebrew装，需要Mac上有Homebrew，它的网站：<a href="https://brew.sh/" target="_blank">https://brew.sh/</a></p>
-<h2>Oh My Zsh</h2>
-
-<blockquote><br>  Oh My Zsh 是基于 zsh 的一个扩展工具集，它提供了丰富的扩展功能<br></blockquote>
-
-<p>可以通过curl安装：<br><code>sh -c “$(curl -fsSL <a href="https://raw.githubusercontent.co" target="_blank" rel="noopener">https://raw.githubusercontent.co</a> … er/tools/install.sh)”</code></p>
-<p>或者通过wget安装：<br><code>sh -c “$(wget <a href="https://raw.githubusercontent.co" target="_blank" rel="noopener">https://raw.githubusercontent.co</a> … er/tools/install.sh -O -)”</code></p>
-<h2>更改主题</h2>
-
-<p>修改配置文件：<code>vim ~/.zshrc</code></p>
-<p>把 <code>ZSH_THEME</code> 的值改为 <code>agnoster</code></p>
-<p>应用配置：<code>chsh -s /bin/zsh</code></p>
-<h2>更改配色方案</h2>
-
-<p>在 <code>Preferences-&gt;Profiles-&gt;Colors</code> 中下拉框里选择 <code>Solarized Dark</code></p>
-<h2>安装 powerline 字符集</h2>
-
-<p><a href="https://pan.baidu.com/s/1nvNshi5" target="_blank">点击下载</a>字符集（密码：描文章下方二维码，关注公众号，回复 <em>powerline</em> 即可获取密码）</p>
-<p>解压后进入目录，执行安装命令：<code>./instal.sh</code></p>
-<p>更改<code>iTerm</code>字体：在 <code>Preferences-&gt;Profiles-&gt;Text</code> 中选择带后缀 <code>for Powerline</code> 的字体</p>
-<h2>修改 vim 配置</h2>
-
-<p>修改文件：<code>vim ~/vimrc</code></p>
-<p>添加如下内容：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">set ruler
-
-set number
-
-set background=dark
-
-syntax enable
-
-colorscheme solarized
-</code></pre>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[Microsoft Visual Studio 注册码]]></title>
-      <url>/visualstudio.html</url>
-      <content type="html"><![CDATA[<h4>Visual Studio 2017（VS2017） 企业版 <code>Enterprise</code> 注册码：<code>NJVYC-BMHX2-G77MM-4XJMR-6Q8QF</code></h4>
-
-<h4>Visual Studio 2017（VS2017） 专业版<code>Professional</code> 激活码key：<code>KBJFW-NXHK6-W4WJM-CRMQB-G3CDH</code></h4>
-
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-]]></content>
-      
-        <categories>
-            
-            <category> 工具 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Tools </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[机器学习-周志华]]></title>
-      <url>/machine-learning.html</url>
-      <content type="html"><![CDATA[<p><strong>《机器学习》是计算机科学与人工智能的重要分支领域。《机器学习》作为该领域的入门教材，在内容上尽可能涵盖机器学习基础知识的各方面。</strong></p>
-<a id="more"></a>
-<p><a href="https://pan.baidu.com/s/1hsIc2GG" target="_blank">点击这里下载</a></p>
-<p>密码：扫描文章下方二维码，关注公众号，回复 <em>机器学习</em> 即可获取密码。</p>
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-]]></content>
-      
-        <categories>
-            
-            <category> 书籍 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Books </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[统计学习方法-李航]]></title>
-      <url>/statistics.html</url>
-      <content type="html"><![CDATA[<p><strong>统计学习方法》是计算机及其应用领域的一门重要的学科。《统计学习方法》全面系统地介绍了统计学习的主要方法，特别是监督学习方法，包括感知机、k近邻法、朴素贝叶斯法、决策树、逻辑斯谛回归与熵模型、支持向量机、提升方法、EM算法、隐马尔可夫模型和条件随机场等。</strong></p>
-<a id="more"></a>
-<p><a href="https://pan.baidu.com/s/1dEG60Cx" target="_blank">点击这里下载</a></p>
-<p>密码：扫描文章下方二维码，关注公众号，回复 <em>统计</em> 即可获取密码。</p>
-<h2>本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!</h2>
-
-]]></content>
-      
-        <categories>
-            
-            <category> 书籍 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> Books </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[使用代理服务器解决无法升级WordPress的问题]]></title>
-      <url>/wordpress-update.html</url>
-      <content type="html"><![CDATA[<p><strong>使用阿里云服务器安装 WordPress 时，常常遇到FTP连接失败问题以及 WordPress 无法升级或者插件更新失败。这里给出一种解决办法</strong></p>
-<a id="more"></a>
-<h3>FTP连接问题</h3>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 解决需要FTP问题
-define("FS_METHOD","direct");
-define("FS_CHMOD_DIR", 0777);
-define("FS_CHMOD_FILE", 0777);
-
-</code></pre>
-
-<h3>使用国外代理服务器</h3>
-
-<p>编辑 <code>wp-config.php</code> 文件，在底部增加一下代码：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-php">define('WP_PROXY_HOST', 'us.centos.bz');
-define('WP_PROXY_PORT', '31281');
-</code></pre>
-
-<p>更改配置后更新即可，更新完成后注释这两行代码，以免影响WordPress使用</p>
-<h3>WordPress升级时显示另一项更新正在进行</h3>
-
-<p>这是由于在升级Wordpress时，Wordpress会在数据库wp_options表中增加core_updater.lock记录。如中途打断Wordpress升级，这个记录会留在数据库中。当下次升级时，Wordpress检测到此记录的存在就会返回”另一更新正在进行”。可通过以下办法解决：</p>
-<p>登陆服务器WordPress数据库，假设表前缀是wp，执行下面这条SQL语句：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-php">delete from wp_options where option_name='core_updater.lock';
-</code></pre>
-]]></content>
-      
-        <categories>
-            
-            <category> 问题 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> WordPress </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[图形的变换]]></title>
-      <url>/opengl-transform.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<h2>数学库包</h2>
-
-<p>首先我们需要引入专门为OpenGL量身定做的数学库——GLM(OpenGL Mathematics)<br>我们可以从它的<a href="http://glm.g-truc.net/0.9.5/index.html" target="_blank">网站</a>上下载。</p>
-<p><em>GLM的网站可能需要通过VPN访问，如果你无法访问，你可以点击<a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/glm-0.9.5.4.zip" target="_blank">这里</a>进行下载。如果你使用的是Visual Studio 2017 ，那么在你搭建完开发环境后，你可以直接引入GLM的相关头文件</em></p>
-<p>我们需要引入以下3个头文件：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">#include &lt;glm/glm.hpp&gt;
-#include &lt;glm/gtc/matrix_transform.hpp&gt;
-#include &lt;glm/gtc/type_ptr.hpp&gt;
-</code></pre>
-
-<h2>变换</h2>
-
-<p><strong>uniform</strong></p>
-<p>在变换之前，我们需要修改顶点着色器，让其接收一个 <code>mat4</code> 的 <code>uniform</code> 变量，然后在用矩阵 <code>uniform</code> 乘以位置向量：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">#version 430 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-
-out vec2 TexCoord;
-
-uniform mat4 transform;
-
-void main()
-{
-    gl_Position = transform * vec4(aPos, 1.0f);
-    TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-}
-</code></pre>
-
-<p><strong>变换矩阵</strong></p>
-<p>首先我们把箱子逆时针旋转90度（沿着Z轴旋转），然后缩放0.5倍。我们需要创建变换矩阵：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">glm::mat4 transfrom
-transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-transform = glm::scal(transform, glm::vec3(0.5, 0.5, 0.5));
-</code></pre>
-
-<p><em>可以看到，变换顺序和程序编写顺序刚好相反。在程序中，我们先写出旋转变换，然后再写缩放变换</em></p>
-<p><code>glm::rotate</code> 函数是旋转函数。GLM希望旋转的角度是弧度制，所以使用了 <code>glm::radians</code> 对角度进行转换。同时我们的纹理是在 XY 平面上，所以我们把它绕着Z轴<br> <code>(0.0, 0.0, 1.0)</code> 进行旋转。<br><code>glm::scal</code> 函数是缩放函数，我们需要将纹理图像对应的轴缩放 <code>(0.5, 0.5, 0.5)</code> 倍。</p>
-<p><strong>把变换矩阵传递给着色器</strong></p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-</code></pre>
-
-<p>首先用 <code>glGetUniformLocation</code> 函数查询了 <code>uniform</code> 变量地址。</p>
-<p>然后用 <code>glUniformMatrix4fv</code> 函数把矩阵数据发送给着色器。<br>第一个参数是 <code>uniform</code> 的位置值；<br>第二个参数告诉OpenGL发送的矩阵个数，这里是1；<br>第三个参数确定是否进行矩阵置换（交换行和列）。GLM中不需要，所以设置为 <code>GL_FALSE</code>;<br>第四个参数是矩阵数据，但GLM并不是把矩阵存储为OpenGL期望接受的格式，因此这里用 <code>glm::value_ptr</code> 函数变换数据。</p>
-<p><strong>以上完成了纹理图像的缩放旋转</strong></p>
-<h2>接下来我们让纹理图像随着时间变换而不断旋转</h2>
-
-<p>我们只需要将变换矩阵更改成如下形式即可：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">glm::mat4 transform;
-transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-</code></pre>
-
-<p><code>glm::translate</code> 函数是位移函数，将纹理图像位移了 <code>(0.5, -0.5, 0.0)</code> 个单位，将纹理图像位移到了屏幕的右下角。</p>
-<p>我们把旋转函数的第二个参数改成了 <code>glfwGetTime()</code>，因此纹理图像旋转的弧度是随着运行时间的增加而不断增加的。</p>
-<p>运行效果如下：<br><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/transform.gif" alt="动图加载可能有点慢"><blockquote><br>  本文的代码可在<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Transform" target="_blank">这里</a>找到，如果对您有所帮助，不妨点个赞。☺<br></blockquote></p>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[OpenGL中坐标的变换——矩阵变换]]></title>
-      <url>/opengl-matrix.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<blockquote>
-<p>在OpenGL图形绘制过程中，常常需要对相应元素的坐标进行变换产生动画效果，而元素的坐标则是用矩阵来表示。因此在本文当中记录一下矩阵的变换。</p>
-</blockquote>
-<p><em>矩阵与向量相关概念在此不做解释了，如果看官不了解，可自行百度查询。在此仅记录缩放、位移和旋转的变换。</em></p>
-<p><strong>在OpenGL中，一般使用四维向量来描述对应元素的 <code>x轴</code>、<code>y轴</code>、<code>z轴</code> 位置以及 <code>alpha</code> 值。</strong></p>
-<h3>缩放</h3>
-
-<p><strong>对一个向量进行缩放(Scaling)就是对向量的长度进行缩放，向量方向保持不变。</strong></p>
-<p>假设我们要使向量 <code>(x, y, z, 1)</code> 的 <code>x</code> 值缩放 <code>S1</code> 倍， <code>y</code> 值缩放 <code>S2</code> 倍， <code>z</code> 值缩放 <code>S3</code> 倍。我们需设置这么一个缩放矩阵：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/S.gif" alt=""></p>
-<p>缩放只需要用缩放矩阵乘上需要缩放的向量即可：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/SR.gif" alt=""></p><h3>位移</h3><p></p>
-<p><strong>位移(Translation)是在原始向量的基础上加上另一个向量从而获得一个在不同位置的新向量的过程</strong></p>
-<p>我们把位移向量表示为： <code>(Tx, Ty, Tz,)</code> ，定义位移矩阵矩阵为：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/T.gif" alt=""></p><h3>旋转</h3><p></p>
-<p>下面给出几种沿不同轴旋转的矩阵（选装角度为θ）：</p>
-<p><strong>沿x轴旋转</strong></p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/X.gif" alt=""><strong>沿y轴旋转</strong></p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/Y.gif" alt=""><strong>沿z轴旋转</strong></p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/Z.gif" alt=""><strong>沿任一轴 <code>(Rx, Ry, Rz)</code> 旋转</strong></p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/R.gif" alt=""></p><h3>组合变换</h3><p></p>
-<p><strong>组合变换只需要依次乘上变换矩阵即可。（从右往左乘）</strong></p>
-<p>例如：将向量 <code>(x, y, z)</code> 先缩放2倍，再位移 <code>(1, 2, 3)</code> 个单位：</p>
-<p>变换矩阵如下：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/TS.gif" alt=""></p>
-<p>最终结果如下：</p>
-<p><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/TSR.gif" alt=""></p>
-<p>即向量 <code>(x, y, z)</code> 先缩放了2倍，然后位移了 <code>(1, 2, 3)</code> 个单位。</p>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[OpenGL设置纹理]]></title>
-      <url>/opengl-textures.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<h1>纹理</h1>
-
-<p>在这份代码中我使用了下面这张纹理图片：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1798907-5d3ac748e3b487f4.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="wall.jpg"></p><h2>纹理坐标：</h2><p></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1798907-743afeda6bcbb154.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="texture_coords"></p>
-<p>从上图中可以看出，纹理的坐标远点是从图片的左下方开始。绘制矩形/三角形时对应的纹理坐标如下：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">//float vertices[] = {
-//  // positions        // colors           // texture coords
-//   0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f ,// top right
-//   0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,// bottom right
-//  -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,// bottom left
-//  -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,  0.0f, 1.0f// top left 
-//};
-//unsigned int indices[] = {  // note that we start from 0!
-//  0, 1, 3,  // first Triangle
-//  1, 2, 3   // second Triangle
-//};
-float vertices[] = {    // 渲染三角形形所需代码
-    -0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,     // 渲染三角形所需代码
-     0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,     // 渲染三角形所需代码
-     0.0f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  0.5f, 1.0f      // 渲染三角形所需代码
-};      // 渲染三角形所需代码
-</code></pre>
-
-<p>矩形的绘制是通过绘制两个三角形得到，我们只需给出4个顶点属性和一个索引数组即可绘制出矩形</p>
-<h2>接下来绑定VAO,VBO,EBO：</h2>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int VBO, VAO, EBO;
-glGenVertexArrays(1, &amp;VAO);
-glGenBuffers(1, &amp;VBO);
-//glGenBuffers(1, &amp;EBO);    // 渲染矩形所需代码
-// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-glBindVertexArray(VAO);
-
-glBindBuffer(GL_ARRAY_BUFFER, VBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);   // 渲染矩形所需代码
-//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);  // 渲染矩形所需代码
-</code></pre>
-
-<h2>解析顶点数据：</h2>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 这是绘制的顶点坐标属性
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-
-// 这是绘制的顶点颜色属性
-glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-glEnableVertexAttribArray(1);
-
-// 这是顶点对应的纹理坐标
-glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-glEnableVertexAttribArray(2);
-</code></pre>
-
-<h2>纹理设置</h2>
-
-<p>首先创建一个纹理ID并绑定</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int texture;
-glGenTextures(1, &amp;texture);
-glBindTexture(GL_TEXTURE_2D, texture);
-</code></pre>
-
-<p>设置环绕、过滤方式</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// set the texture wrapping parameters
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-// set texture filtering parameters
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-</code></pre>
-
-<p>生成并加载纹理</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">int width, height, nrChannels;
-char *texturePath = "../src/wall.jpg";      // 这里填写你的图片路径
-unsigned char *data = stbi_load(texturePath, &amp;width, &amp;height, &amp;nrChannels, 0);      // stbi_load函数首先接受一个图像文件的位置作为输入。接下来它需要三个int作为它的第二、第三和第四个参数，stb_image.h将会用图像的宽度、高度和颜色通道的个数填充这三个变量。我们之后生成纹理的时候会用到的图像的宽度和高度的。
-</code></pre>
-
-<p>在这里使用到了<a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/Textures/include/stb_image.h" target="_blank">stb_image.h</a></p>
-<p>在使用<code>stb_image.h</code>之前，需要创建一个<code>stb_image.cpp</code>文件，并添加如下内容：<br>通过定义<code>STB_IMAGE_IMPLEMENTATION</code>，预处理器会修改头文件，让其只包含相关的函数定义源码。使用时只需要在程序中包含<code>stb_image.h</code>文件就可以了。</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-</code></pre>
-
-<p>接下来使用前面载入的图片生成纹理：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">if (data)
-{
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-}
-else
-{
-    std::cout &lt;&lt; "Failed to load texture" &lt;&lt; std::endl;
-}
-// 释放图像内存
-stbi_image_free(data);
-</code></pre>
-
-<p>当调用glTexImage2D时，当前绑定的纹理对象就会被附加上纹理图像。然而，目前只有基本级别(Base-level)的纹理图像被加载了，如果要使用多级渐远纹理，我们必须手动设置所有不同的图像（不断递增第二个参数）。或者，直接在生成纹理之后调用glGenerateMipmap。这会为当前绑定的纹理自动生成所有需要的多级渐远纹理。</p>
-<h2>最后应用纹理</h2>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">while (!glfwWindowShouldClose(window))
-    {
-        // input
-        // -----
-        processInput(window);
-
-        // render
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        ourShader.use();
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-                                //glDrawArrays(GL_TRIANGLES, 0, 6);
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // glBindVertexArray(0); // no need to unbind it every time 
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);   // 渲染三角形所需代码
-
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);  // 渲染矩形所需代码
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &amp;VAO);
-    glDeleteBuffers(1, &amp;VBO);
-    glDeleteBuffers(1, &amp;EBO);
-
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
-    return 0;
-}
-</code></pre>
-
-<p>你可以在<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Textures" target="_blank">这里</a>找到源码，最后渲染出的三角形与矩形（只需要将注释中三角形与矩形的代码互换即可）效果如下：</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1798907-60ea00f9ad45a1ad.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="triangleTexture.png"><img src="http://upload-images.jianshu.io/upload_images/1798907-b1ab489efd5dbafc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="rectangleTexture.png"></p>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[着色器的一些归纳总结]]></title>
-      <url>/opengl-shaders.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<h2>着色器(shaders)</h2>
-
-<blockquote><br>  结构(structure)<br></blockquote>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version version_number
-in type in_variable_name;
-in type in_variable_name;
-
-out type out_variable_name;
-
-uniform type uniform_name;
-
-int main()
-{
-    // 处理输入并进行一些图形操作
-    ...
-    // 输出处理的结果到输出变量
-    out_variable_name = weird_stuff_we_processed;
-}
-</code></pre>
-
-<blockquote><br>  查询顶点属性上限<br></blockquote>
-
-<p>查询 GL_MAX_VERTEX_ATTRIBS 获取能申明的顶点属性上限（一般由硬件决定，OpenGL确保至少有16个包含4分量的顶点属性可用）</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int nrAttributes;
-glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &amp;nrAttributes);
-std::cout &lt;&lt; "Maximun nr of vertex attributes supported:" &lt;&lt; nrAttributes &lt;&lt; std::endl;
-</code></pre>
-
-<blockquote><br>  vector（大多时候我们使用vecn，float足够满足大多数要求）<br></blockquote>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">vecn：包含n个float分量的默认向量
-bvecn：包含n个bool分量的向量
-ivecn：包含n个int 分量的向量
-uvecn：包含n个unsigned int分量的向量
-dvecn：包含n个double分量的向量
-</code></pre>
-
-<blockquote><br>  分量获取<br></blockquote>
-
-<p>向量的分量可通过<code>vec.x</code>这种方式获取，<code>vec.x</code>、<code>vec.y</code>、<code>vec.z</code>、<code>vec.w</code>获取第1、2、3、4个分量。GLSL也允许对颜色使用<code>rgba</code>，或是对纹理坐标使用<code>stpq</code>访问相同的分量</p>
-<blockquote><br>  向量重组（Swizzling）<br></blockquote>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">vec2 someVec;
-vec4 differentVec = someVec.xyxx;
-vec3 anotherVec = differentVec.zyw;
-vec4 otherVec = someVec.xxxx + anotherVec.yxzy
-</code></pre>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">vec2 vect = vec2(0.5, 0.7);
-vec4 result = vec4(vect, 0.0, 0.0);
-vec4 otherResult = vec4(result.xyz, 1.0);
-</code></pre>
-
-<blockquote><br>  输入与输出<br></blockquote>
-
-<p>GLSL定义了<code>in</code>和<code>out</code>关键字来实现着色器的输入输出，只要一个输出变量与下一个着色器阶段的输入匹配，它就会传递下棋，但在顶点和片段着色器中会有点不同</p>
-<p>顶点着色器的输入特殊在它从顶点数据中直接接收输入。为了定义定点数据该如何管理，使用<code>location</code>这一元数据指定输入变量，这样就可以在CPU上配置顶点属性。顶点着色器需要为它的输入提供一个额外的<code>layout</code>标识，这样才能把它链接到顶点数据。</p>
-<blockquote><br>  改动程序中的着色器<br></blockquote>
-
-<p>顶点着色器：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
-layout (location = 0) in vec3 aPos; // 位置变量的属性值为0
-
-out vec4 vertexColor;   // 为片段着色器指定一个颜色输出
-
-void main()
-{
-    gl_Position = vec4(aPos, 1.0);  // 注意，这里把一个vec3作为vec4的构造器参数
-    vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // 把输出变量设置为暗红色
-}
-</code></pre>
-
-<p>片段着色器：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
-out vec4 FragColor;
-
-in vec4 vertexColor;    // 从顶点着色器传来的输入变量（名称、类型相同）
-
-void main()
-{
-    FragColor = vertexColor;
-}
-</code></pre>
-
-<p>这样完成了从顶点着色器向片段着色器发送数据，改变了三角形的颜色</p>
-<blockquote><br>  Uniform<br></blockquote>
-
-<p>Uniform是一种从CPU中的应用向GPU中的着色器发送数据的方式，但它和定点属性有些不同。</p>
-<p>1、Uniform是全局的，Uniform变量必须在每个着色器程序对象中都是独一无二的，而且它可以被着色器程序的任意着色器在任意阶段访问。<br>2、无论把Uniform值设置成什么，它会一直保存它们的数据，直到它们被重置或更新。</p>
-<p>在一个着色器中添加<code>Uniform</code>关键字至类型和变量名前来生命一个GLSL的Uniform。</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
-out vec4 FragColor;
-
-uniform vec4 ourColor;  // 在OpenGL程序代码中设定这个变量
-
-void main()
-{
-    FragColor = ourColor;
-}
-</code></pre>
-
-<p><strong>如果申明了一个uniform却在GLSL代码中没用过，编译器会静默移除这个变量，导致最后编译出的版本中不会包含它，这可能导致几个非常麻烦的错误！</strong></p>
-<p>接下来给uniform添加数据，使得三角形颜色随时间而改变</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 获取运行的秒数
-float timeValue = glfwGetTime();
-// sin函数（引入cmath）让颜色在0.0到1.0之间改变
-float greenValue = sin(timeValue) / 2.0f + 0.5f;
-// 查询uniform ourColor的位置值，如果返回-1则表示没有找到这个位置值
-int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-glUseProgram(shaderProgram);
-// 设置uniform值。
-glad_glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-</code></pre>
-
-<p><strong>注意，查询uniform地址不要求你之前使用过的着色器程序，但更新一个uniform之前必须先使用程序（调用glUseProgram），因为它是在当前激活的着色器中设置uniform的</strong></p>
-<p>因为OpenGL其核心是一个C库，所以它不支持类型重载，在函数参数不同的时候就要为其定义新的函数；<code>glUniform</code>就是一个典型的例子：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">后缀  含义
-f    函数需要一个float作为它的值
-i    函数需要一个int作为它的值
-ui   函数需要一个unsigned int作为它的值
-3f   函数需要3个float作为它的值
-fv   函数需要一个float向量/数组作为它的值
-</code></pre>
-
-<blockquote><br>  本文的代码可在<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Shaders" target="_blank">这里</a>找到，如果对您有所帮助，不妨点个赞。☺<br></blockquote>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[使用GLFW与GLAD创建窗口并绘制三角形]]></title>
-      <url>/opengl-glfw-glad.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<h1>创建窗口</h1>
-
-<p>1、首先我们引入必要的头文件：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#include "glad.h"
-#include &lt;GLFW/glfw3.h&gt;
-</code></pre>
-
-<p><strong>请确保GLAD头文件的引入在GLFW之前，GLAD的头文件包含了正确的OpenGL头文件(例如<code>GL/gl.h</code>)，所以需要在其他依赖于OpenGL的头文件之前引入GLAD</strong></p>
-<p>2、实例化GLFW窗口</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">int main()
-{
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    // Mac必须添加此行，Windows忽略
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    return 0;
-}
-</code></pre>
-
-<p>前两行代码指定了OpenGL的主版本和次版本号(4.1)，第三行代表着使用核心模式(Core-profile)，意味着我们只能使用OpenGL功能的一个子集（没有我们不再需要的向后兼容特性）。</p>
-<p>3、接下来创建一个窗口对象，它存放了所有和窗口相关的数据，而且会被GLFW的其他函数频繁调用</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-if(window == NULL)
-{
-    std::cout &lt;&lt; "Failed to create GLFW window" &lt;&lt; std::endl;
-    glfwTerminate();
-    return -1;
-}
-glfwMakeContexCurrent(window);
-</code></pre>
-
-<p>glfwCreateWindow函数，前两个参数是窗口的宽高，第三个参数是这个窗口的命名，后两个暂时忽略，返回了一个GLFWwindow对象。glfwMakeContexCurrent函数告诉GLFW将窗口的上下文设置为当前线程的主上下文。</p>
-<p>4、GLAD是用来管理OpenGL的函数指针的，所以调用任何OpenGL函数之前需要初始化GLAD</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-{
-    std::cout &lt;&lt; "Failed to initialize GLAD" &lt;&lt; std::endl;
-    return -1;
-}
-</code></pre>
-
-<p>我们给GLAD传入了用来加载系统相关的OpenGL函数指针地址的函数。GLFW给我们的是<code>glfwGetProcAdress</code>，它根据我们编译的系统定义了正确的函数。</p>
-<p>5、视口</p>
-<p>在开始渲染之前必须告诉OpenGL渲染窗口(Viewport)的尺寸大小，这样OpenGL才能知道怎样根据窗口大小显示数据和坐标。</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 此函数设置窗口的维度(Dimension)
-glViewport(0, 0, 800, 600);
-</code></pre>
-
-<p>前两个参数控制窗口左下角位置，后两个控制渲染窗口的宽高（像素）。也可将视口维度设置比GLFW窗口维度小，这样子之后所有的OpenGL渲染将会在一个更小的窗口中显示，这样子的话我们也可以将一些其它元素显示在OpenGL视口之外。</p>
-<p>6、对窗口注册回调函数(CallbackFunction)</p>
-<p>函数注册后会在每次窗口大小改变的时候调用，视口也会随之调整</p>
-<p>函数原型如下：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-</code></pre>
-
-<p>进行注册，告诉GLFW每当窗口调整时调用此函数：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-</code></pre>
-
-<p>7、为了使图像能够持续显示而不是一闪即逝，我们需要写一个渲染循环，使得GLFW在退出之前一直保持运行</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">while(!glfwWindowShouldClose(window))
-{
-    glfwSwapBuffers(window);
-    glfwPollEvents();    
-}
-</code></pre>
-
-<p><code>glfwWindowShouldClose</code>函数在每次循环开始前检查一次GLFW是否被要求退出，是的话返回<code>true</code>，循环结束</p>
-<p><code>glfwPollEvents</code>函数检查是否有触发事件，比如键盘、鼠标等信号输入，然后更新窗口状态，调用相应的回调函数（可通过回调方法手动设置）。</p>
-<p><code>glfwSwapBuffers</code>函数会交换颜色缓冲</p>
-<p>8、渲染结束后释放所有资源</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glfwTerminate();
-return 0;
-</code></pre>
-
-<p><strong>至此，窗口创建完成</strong></p>
-<p>接下来我们进行一些完善工作</p>
-<p>9、接下来我们添加一个触发时间，当用户按下<code>Esc</code>键时关闭窗口。</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">void processInput(GLFWwindow *window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-</code></pre>
-
-<p><code>glfwGetKey</code>函数需要一个窗口以及一个按键作为输入。这个函数将会返回这个案件是否正在被按下，我们将其定义在<code>processInput</code>函数当中</p>
-<p>接下来在渲染循环的每一个迭代中调用<code>processInput</code>：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">while (!glfwWindowShouldClose(window))
-{
-    processInput(window);
-
-    // 这里是渲染指令
-    ...
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-}
-</code></pre>
-
-<p>10、我们使用一个自定义的颜色清空屏幕，使得在每个新的渲染迭代开始后清除上一次渲染结果，并显示我们自定义的颜色</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-glClear(GL_COLOR_BUFFER_BIT);
-</code></pre>
-
-<h1>渲染一个三角形</h1>
-
-<p>开始绘制之前，我们需要给OpenGL输入一些顶点数据（范围在[-1, 1]，需要自行进行坐标变换）。我们需要渲染一个三角形，因此我们需要三个顶点位置，将它定义为一个<code>float</code>数组：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 由于我们绘制的是一个2D三角形，因此，将其顶点的z坐标都设置为0
-float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
-};
-</code></pre>
-
-<p>接下来使用<code>glGenBuffers</code>函数和一个缓冲ID生成一个VBO对象，并使用<code>glBindBuffer</code>函数把新创建的缓冲绑定到<code>GL_ARRAY_BUFFER</code>目标上：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int VBO;
-glGenBuffers(1, &amp;VBO);
-glBindBuffer(GL_ARRAY_BUFFER, VBO);  
-</code></pre>
-
-<p>从这一刻起，我们使用的任何（在<code>GL_ARRAY_BUFFER</code>目标上的）缓冲调用都会用来配置当前绑定的缓冲(VBO)。然后我们可以调用glBufferData函数，它会把之前定义的顶点数据复制到缓冲的内存中：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-</code></pre>
-
-<p>第一个参数是目标缓冲的类型，顶点缓冲对象当前绑定到<code>GL_ARRAY_BUFFER</code>目标上。</p>
-<p>第二个参数指定传输数据大小。</p>
-<p>第三个参数是我们实际发送的数据。</p>
-<p>第四个参数指定了显卡管理数据的方式，有一下三种形式：<br><code>GL_STATIC_DRAW</code>：数据不会或几乎不改变。<br><code>GL_DYNAMIC_DRAW</code>：数据会改变很多。<br><code>GL_STREAM_DRAW</code>：数据每次绘制都会改变。</p>
-<h2>顶点着色器</h2>
-
-<p>首先用<code>GLSL</code>(OoenGL Shading Language)编写顶点着色器，然后编译这个着色器。下面给出一个非常基础的顶点着色器源代码：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
-layout (location = 0) in vec3 aPos;
-
-void main()
-{
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-}
-</code></pre>
-
-<p>首先申明OpenGL版本4.1（对应410）。<br>接下来使用<code>in</code>关键字，在顶点着色器中声明所有的输入顶点属性(Input Vertex Attribute)。现在我们只关心位置(Position)数据，所以我们只需要一个顶点属性。GLSL有一个向量数据类型，它包含1到4个<code>float</code>分量，包含的数量可以从它的后缀数字看出来。由于每个顶点都有一个3D坐标，我们就创建一个<code>vec3</code>输入变量<code>aPos</code>。我们同样也通过<code>layout (location = 0)</code>设定了输入变量的位置值(Location)你后面会看到为什么我们会需要这个位置值。</p>
-<h2>编译着色器</h2>
-
-<p>先创建一个着色器对象，注意还是用ID来引用。所以我们储存这个顶点着色器为<code>unsigned int</code>，然后用<code>glCreateShader</code>创建这个着色器：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int vertexShader;
-vertexShader = glCreateShader(GL_VERTEX_SHADER);
-</code></pre>
-
-<p>我们把需要创建的着色器类型以参数形式提供给<code>glCreateShader</code>。由于我们正在创建一个顶点着色器，传递的参数是<code>GL_VERTEX_SHADER</code>。</p>
-<p>接下来把着色器源码附加到着色器对象上，并编译它：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glShaderSource(vertexShader, 1, &amp;vertexShaderSource, NULL);
-glCompileShader(vertexShader);
-</code></pre>
-
-<p><code>glShaderSource</code>函数把要编译的着色器对象作为第一个参数。第二参数指定了传递的源码字符串数量，这里只有一个。第三个参数是顶点着色器真正的源码，第四个参数我们先设置为<code>NULL</code>。</p>
-<h2>片段着色器</h2>
-
-<p>先给出片段着色器源码：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">#version 410 core
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-} 
-</code></pre>
-
-<p>片段着色器只需要一个输出变量，这个变量是一个4分量向量，它表示的是最终的输出颜色，我们应该自己将其计算出来。我们可以用<code>out</code>关键字声明输出变量，这里我们命名为<code>FragColor</code>。下面，我们将一个alpha值为1.0(1.0代表完全不透明)的橘黄色的<code>vec4</code>赋值给颜色输出。</p>
-<p>编译片段着色器的过程与顶点着色器类似，只不过我们使用<code>GL_FRAGMENT_SHADER</code>常量作为着色器类型：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int fragmentShader;
-fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-glShaderSource(fragmentShader, 1, &amp;fragmentShaderSource, NULL);
-glCompileShader(fragmentShader);
-</code></pre>
-
-<h2>着色器程序</h2>
-
-<p>着色器程序对象(Shader Program Object)是多个着色器合并之后并最终链接完成的版本。如果要使用刚才编译的着色器我们必须把它们链接(Link)为一个着色器程序对象，然后在渲染对象的时候激活这个着色器程序。已激活着色器程序的着色器将在我们发送渲染调用的时候被使用。</p>
-<p>创建程序对象：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int shaderProgram;
-shaderProgram = glCreateProgram();
-</code></pre>
-
-<p><code>glCreateProgram</code>函数创建一个程序，并返回新创建程序对象的ID引用。现在我们需要把之前编译的着色器附加到程序对象上，然后用<code>glLinkProgram</code>链接它们：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glAttachShader(shaderProgram, vertexShader);
-glAttachShader(shaderProgram, fragmentShader);
-glLinkProgram(shaderProgram);
-</code></pre>
-
-<p>最后调用<code>glUseProgram</code>函数，激活程序：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glUseProgram(shaderProgram);
-</code></pre>
-
-<p>着色器对象链接到程序对象以后，需要删除着色器对象：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glDeleteShader(vertexShader);
-glDeleteShader(fragmentShader);
-</code></pre>
-
-<h2>链接定点属性</h2>
-
-<p>顶点着色器允许我们指定任何以顶点属性为形式的输入。这使其具有很强的灵活性的同时，它还的确意味着我们必须手动指定输入数据的哪一个部分对应顶点着色器的哪一个顶点属性。所以，我们必须在渲染前指定OpenGL该如何解释顶点数据。</p>
-<p>我们的顶点缓冲数据会被解析为下面这样子：<br><img src="http://upload-images.jianshu.io/upload_images/1798907-36d9926578e52b22.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image"></p>
-<p>因此使用<code>glVertexAttribPointer</code>函数告诉OpenGL该如何解析顶点数据：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-</code></pre>
-
-<p>第一个参数指定我们要配置的顶点属性</p>
-<p>第二个参数指定顶点属性的大小。</p>
-<p>第三个参数指定数据的类型</p>
-<p>第四个参数定义我们是否希望数据被标准化(Normalize)。如果我们设置为<code>GL_TRUE</code>，所有数据都会被映射到0（对于有符号型signed数据是-1）到1之间。</p>
-<p>第五个参数是步长，它告诉我们在连续的顶点属性组之间的间隔。</p>
-<p>最后一个参数表示位置数据在缓冲中起始位置的偏移量(Offset)。</p>
-<p>接下来使用<code>glEnableVertexAttribArray</code>函数，以顶点属性位置值作为参数，启用定点属性。</p>
-<p>代码最终大概长这样：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// 0. 复制顶点数组到缓冲中供OpenGL使用
-glBindBuffer(GL_ARRAY_BUFFER, VBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-// 1. 设置顶点属性指针
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-// 2. 当我们渲染一个物体时要使用着色器程序
-glUseProgram(shaderProgram);
-// 3. 绘制物体
-someOpenGLFunctionThatDrawsOurTriangle();
-</code></pre>
-
-<h2>顶点数组对象</h2>
-
-<p>Vertex Array Object(VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中。</p>
-<p><strong>OpenGL的核心模式要求我们使用VAO，所以它知道该如何处理我们的顶点输入。如果我们绑定VAO失败，OpenGL会拒绝绘制任何东西。</strong></p>
-<p>一个顶点数组对象会储存以下这些内容：</p>
-<p><code>glEnableVertexAttribArray</code>和<code>glDisableVertexAttribArray</code>的调用。<br>通过<code>glVertexAttribPointer</code>设置的顶点属性配置。<br>通过<code>glVertexAttribPointer</code>调用与顶点属性关联的顶点缓冲对象。</p>
-<p>VAO的创建类似VBO：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">unsigned int VAO;
-glGenVertexArrays(1, &amp;VAO);
-</code></pre>
-
-<p>要使用VAO，只需使用<code>glBindVertexArray</code>绑定VAO。从绑定之后起，我们应该绑定和配置对应的VBO和属性指针，之后解绑VAO供之后使用。当我们打算绘制一个物体的时候，我们只要在绘制物体前简单地把VAO绑定到希望使用的设定上就行了。</p>
-<p>代码大概是这样的：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">// ..:: 初始化代码（只运行一次 (除非你的物体频繁改变)） :: ..
-// 1. 绑定VAO
-glBindVertexArray(VAO);
-// 2. 把顶点数组复制到缓冲中供OpenGL使用
-glBindBuffer(GL_ARRAY_BUFFER, VBO);
-glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-// 3. 设置顶点属性指针
-glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-glEnableVertexAttribArray(0);
-
-[...]
-
-// ..:: 绘制代（渲染循环中） :: ..
-// 4. 绘制物体
-glUseProgram(shaderProgram);
-glBindVertexArray(VAO);
-someOpenGLFunctionThatDrawsOurTriangle();
-</code></pre>
-
-<h2>绘制三角形</h2>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-cpp">glUseProgram(shaderProgram);
-glBindVertexArray(VAO);
-glDrawArrays(GL_TRIANGLES, 0, 3);
-</code></pre>
-
-<p><code>glDrawArrays</code>函数第一个参数是打算绘制的图元的类型。第二个参数制订了顶点数组的起始索引，第三个参数指定我们打算绘制的顶点个数。</p>
-<p>最终三角形是长这样的：<br><img src="http://upload-images.jianshu.io/upload_images/1798907-3e79c3e9034e02eb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image"></p>
-<p>你可以在这里找到源码：<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Triangle" target="_blank">三角形</a>、<a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Rectangle" target="_blank">矩形</a>。</p>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[在Mac和Windows上配置OpenGL环境]]></title>
-      <url>/opengl-env.html</url>
-      <content type="html"><![CDATA[<p><strong>最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站<a href="http://orient.ren" target="_blank" rel="noopener">Orient</a>一起讨论学习。这里是我的<a href="https://github.com/Orient-ZY" target="_blank" rel="noopener">GitHub</a>，如果您喜欢，不妨点个赞？☺</strong></p>
-<a id="more"></a>
-<h1>Learning OpenGL on Xcode</h1>
-
-<h2>安装glfw</h2>
-
-<blockquote><br>  glfw是一个OpenGL的应用框架，支持Linux和Windows。glfw主要用来处理特定操作系统下的特定任务，例如OpenGL窗口管理、分辨率切换、键盘、鼠标以及游戏手柄、定时器输入、线程创建等。<br></blockquote>
-
-<p>1、在终端中运行命令<code>brew install glfw3</code></p>
-<p>glfw将会被安装在<code>/usr/local/Cellar/glfw</code></p>
-<p>2、配置路径</p>
-<p>在<code>/usr/local/Cellar/glfw</code><br>路径下找到<code>header</code>和<code>lib</code><br>对应路径，在Xcode-&gt;Preferences-&gt;Localtion-&gt;Custom Paths<br>设置路径：<br><a href="http://git.oschina.net/orient01/OpenGL-img/raw/master/localtion.png" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/localtion.png" alt="image"></a></p>
-<p>3、配置<code>header/library searcher path</code></p>
-<p>在项目<code>Build Settings</code>中搜索<code>header search</code>，添加如下配置：</p>
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/header.png" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/header.png" alt="image"></a></p>
-<p>搜索<code>library search</code>，添加如下配置：</p>
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/library.png" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/library.png" alt="image"></a></p>
-<p>4、在项目中导入需要的库文件，如下图示：</p>
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/linked.png" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/linked.png" alt="image"></a></p>
-<h2>配置glad</h2>
-
-<blockquote><br>  OpenGL只是一个标准/规范，具体的实现是有驱动开发商针对特定显卡实现的。由于OpenGL驱动版本众多，它大多数函数的位置都无法在编译时确定下来，需要在运行时查询。开发者需要在运行时获取函数地址并将其保存在一个函数指针中供以后使用。而取得地址的方法非常复杂、繁琐。glad库是目前最新、最流行的简化此过程的库。<br></blockquote>
-
-<p>1、打开glad的<a href="http://glad.dav1d.de/" target="_blank">在线服务</a><br>2、将语言设置为C/C++，在API选项中，选择3.3以上的OpenGL版本（我的电脑选择的是4.1版本，3.3及更新的版本也能正常工作）<br>3、将模式（Profile）设置为Core，保证生成加载器（Generate a loader）选项是选中的。<br>4、先暂时忽略拓展（Extensions）中内容。点击生成（Generate）<br>5、下载生成的zip包（包含glad.c、glad,h和khrplatform.h），解压添加到项目中。</p>
-<h1>至此Mac配置基本完成</h1>
-
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/tree/master/Example" target="_blank">点击这里</a>下载配置好的项目，您只需要更改<code>main.cpp</code>中的代码即可开始OpenGL的学习</p>
-<blockquote><br>  <em>如果这份代码对您有所帮助，烦请您动动手指点个Star。谢谢！</em><br></blockquote>
-
-<h1>Learning OpenGL on Visual Studio 2017</h1>
-
-<h2>配置OpenGL</h2>
-
-<p>1、新建Win32 控制台应用程序，勾选空项目。<br>2、在菜单：项目-&gt;管理NuGet程序包 中搜索<code>nupengl</code>，安装<code>nupengl.core</code></p>
-<h2>配置glad库</h2>
-
-<p>1、在glad<a href="http://glad.dav1d.de/" target="_blank">在线服务</a>中配置glad，方法同Xcode。<br>2、将生成的zip文件下载解压。将其中的<code>include</code>与<code>src</code>文件夹复制到项目目录中，并将三个文件拖入项目中：</p>
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/ScreenShot.jpg" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/ScreenShot.jpg" alt="image"></a></p>
-<p>3、在项目-&gt;属性-&gt;VC++目录中，添加包含目录和源目录</p>
-<p><a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/win-include.jpg" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/win-include.jpg" alt="image"></a> <a href="https://github.com/Orient-ZY/OpenGL-Learning/blob/master/img/win-src.jpg" target="_blank"><img src="http://git.oschina.net/orient01/OpenGL-img/raw/master/win-src.jpg" alt="image"></a></p>
-<h1>至此Visual Studio配置基本完成</h1>
-]]></content>
-      
-        <categories>
-            
-            <category> OpenGL </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> OpenGL </tag>
-            
-        </tags>
-        
-    </entry>
-    
-    <entry>
-      <title><![CDATA[Mac下解决ssh链接linux服务器丢包问题]]></title>
-      <url>/ssh-linux.html</url>
-      <content type="html"><![CDATA[<p><strong>ssh连接云服务器一段时间不操作之后进入Terminal，会发现不再响应，需要重新连接</strong></p>
-<a id="more"></a>
-<h2>连接服务器方式</h2>
-
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">ssh root@公网IP -p 22
-</code></pre>
-
-<p>如果一段时间不操作之后进入Terminal，会发现不在响应，需要重新连接</p>
-<h2>解决方案</h2>
-
-<h3>方案一：</h3>
-
-<p>在本地mac端编辑<code>~/.ssh/config</code>文件添加一行：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">ServerAliveInterval 60
-</code></pre>
-
-<h3>方案二：</h3>
-
-<p>在服务器端编辑<code>/etc/ssh/sshd_config</code>文件添加一行：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">ServerAliveInterval 60
-</code></pre>
-
-<h3>方案三：</h3>
-
-<p>若只想保持当前连接，可使用以下命令：</p>
-<pre class="line-numbers prism-highlight" data-start="1"><code class="language-null">ssh -o ServerAliveInterval=60 user@sshserver
-</code></pre>
-]]></content>
-      
-        <categories>
-            
-            <category> 问题 </category>
-            
-        </categories>
-        
-        
-        <tags>
-            
-            <tag> linux </tag>
-            
-        </tags>
-        
-    </entry>
-    
-  
-  
+<search>
+  <entry>
+    <title><![CDATA[摄像机]]></title>
+    <url>%2Fopengl-camera.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 在OpenGL中并没有摄像机(Camera)的概念，因此引入一个虚拟的摄像机，并自定义一个摄像机类。 摄像机/观察空间在讨论摄像机/观察空间(Camera/View Space)，其实就讨论以摄像机的视角作为场景原点时场景中所有顶点的坐标。使用观察矩阵可以把所有的世界坐标变幻为相对于摄像机位置与方向的观察坐标。因此定义一个摄像机，我们需要它在世界中的位置、观察方向、一个指向它右侧的向量以及一个指向它上方的向量。其实就是以摄像机为原点创建了一个如下图所示的坐标系： 1、摄像机位置获取摄像机位置很简单，就是世界空间中一个指向摄像机位置的向量。我们仍然设置为之前的摄像机位置： 1glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); 注意Z轴的方向 2、摄像机方向我们先让摄像机指向世界场景原点: (0, 0, 0)。摄像机方向由摄像机的坐标减去它指向点的坐标得到： 12glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget); 注意：其实摄像机方向与摄像机的指向刚好相反 3、右轴我们需要获取一个右向量(Right Vector),它代表摄像机空间的X轴正方向。右向量的获取：先定义一个世界空间坐标中的上向量(Up Vector)，然后将其与上步得到的摄像机方向向量进行叉乘： 12glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);cameraRight = glm::normalize(glm::cross(up, cameraDirection)); 如果两向量的叉乘顺序交换将会得到方向相反的一个X轴负方向向量 4、上轴将摄像机方向向量与右向量叉乘即可得到： 1glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight); 我们已经创建了所有构成观察/摄像机空间的向量。接下来我们使用这些向量就可以构建一个LookAt矩阵 LookAt使用矩阵的好处之一：如果使用了3个相互垂直的轴定义了一个坐标空间，那么可以用这3个轴外加一个平移向量来创建一个矩阵，并且可以用这个矩阵乘以任何向量来将其变换到那个坐标空间。LookAt矩阵正是如此。 其中R是右向量，U是上向量，D是方向向量，P是摄像机位置向量。（注意：位置向量是相反的，因为我们最终希望把世界平移到与我们自身移动的相反方向）这个LookAt矩阵可以很高效地把所有世界坐标变幻到刚定义的观察空间。 GLM提供了这样的支持：我们只需要定义一个摄像机位置，一个目标位置和一个表示世界空间中上向量的向量，GLM就会创建一个LookAt矩阵，我们把它当作我们的观察矩阵： 12glm::mat4 view;view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); 自由移动摄像机首先我们设置一个摄像机系统，定义一些变量： 123glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); LookAt： 1view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp); 位置为之前定义的cameraPos，方向是当前位置加上刚定义的方向向量。这样就能保证无论怎么移动，摄像机都会注视着目标方向。 在GLFW键盘输入定义的函数processInput中添加几个需要检查的按键命令： 12345678910111213void processInput(GLFWwindow *window)&#123; ... float cameraSpeed = 0.05f; // adjust accordingly if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) cameraPos += cameraSpeed * cameraFront; if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) cameraPos -= cameraSpeed * cameraFront; if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed; if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;&#125; 这里对右向量进行了标准化。如果没有对这个向量进行标准化，最后的叉乘结果很根据cameraFront变量返回大小不同的变量。摄像机移动的速度将会发生改变。标准化后，摄像机移动就是匀速的 移动速度上面的移动速度是个常量，讲道理是会一直匀速移动没有问题。但实际情况是每个处理器的能力不同，有些人每秒绘制的帧数可能要比别人多，或者少，也就是以更高/低的频率调用processInput函数。结果就是有些人可能移动很快，有些很慢。 图形程序和游戏通常会跟踪一个时间差(Deltatime)变量，它存储了渲染上一帧所用时间。我们把所有速度都去乘以deltaTime值，结果就是如果我们的deltaTime很大，就意味着上一帧的渲染花费了更多时间，所以这一帧的速度需要更高去平衡渲染所花去的时间。因此我们得到一个相对稳定的移动速度： 1234567891011float deltaTime = 0.0f; // 当前帧与上一帧时间差float lastTime = 0.0f; // 上一帧的时间float currentFrame = glfwGetTime();deltaTime = currentFrame - lastFrame;lastFrame = currentFrame;void processInput(GLFWwindow * window) &#123; float cameraSpeed = 2.5f * deltaTime; &#125; 因此我们的得到了一个更流畅点的摄像机系统。 视角移动我们根据鼠标的输入改变cameraFront向量，从而可以改变摄像机的视角。 摄像机视角的改变可以通过改变欧拉角：俯仰角(Pitch)、偏航角(Yaw)和滚转角(Roll)： 俯仰角描述我们如何往上或往下看的角。偏航角表示我们往左和往右看的程度。滚转角代表我们如何翻滚摄像机。在这里我们不涉及翻滚角 我们通过三角函数来将角度转换为方向向量： 基于俯仰角： 123direction.y = sin(glm::radians(pitch)); // 先把角度转为弧度direction.x = cos(glm::radians(pitch)); direction.z = cos(glm::radians(pitch)); / 基于俯仰角与偏航角： 123direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw)); // 先把角度转为弧度direction.y = sin(glm::radians(pitch)); direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw)); 鼠标输入偏航角与俯仰角是通过鼠标/手柄移动获得的。水平移动影响偏航角，竖直移动影响俯仰角。原理就是：存储上一帧鼠标的位置，在当前帧中计算鼠标位置与上一帧的位置相差多少。如果水平/竖直差别越大那么俯仰角或偏航角就改变越大。 首先告诉GLFW隐藏光标并捕捉它： 1glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 接下来申明一个鼠标监听函数： 1234/* *p2、p3：鼠标当前位置 */void mouse_callback(GLFWwindow *window, double xpos, double ypos) 当用GLFW注册了回调函数后，鼠标一移动mouse_callback函数就会被调用： 1glfwSetCursorPosCallback(window, mouse_callback); 在处理FPS风格摄像机的鼠标输入时，必须在最终获取方向向量之前做下面几步： 计算鼠标距上一帧的偏移量 把偏移量添加到摄像机的俯仰角和偏航角中 对偏航角和俯仰角进行最大和最小值的限制 计算方向向量 第一步是计算鼠标自上一帧的偏移量。须先在程序中存储上一帧鼠标的位置，这里将其设置在屏幕中心（屏幕尺寸：800 x 600）： 1float lastX = 400, lastY = 300; 然后在鼠标回调函数中计算当前帧和上一帧鼠标位置的偏移量： 12345678float xoffset = xpos - lastX;float yoffset = lastY - ypos; // y坐标是从底部往顶部依次增大lastX = xpos;lastY = ypos;float sensitivity = 0.05f; //灵敏度xoffset *= sensitivity;yoffset *= sensitivity; 接下来把偏移量加到全局变量pitch和yaw上： 12yaw += xoffset;pitch += yoffset; 第三部给摄像机添加一些限制，防止其发生奇怪的移动（同时避免一些奇怪的问题）。对于俯仰角，要让用户不能看向高于89度的地方（在90度时视角发生逆转，所以把89度作为极限），同样也不允许小于-89度。在值超过极限值的时候将其改为极限值来实现： 1234if (pitch &gt; 89.0f) pitch = 89.0f;if (pitch &lt; -89.0f) pitch = -89.0f; 最后一步，通过俯仰角和偏航角计算得到真正的方向向量： 12345glm::vec3 front;front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));front.y = sin(glm::radians(pitch));front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));cameraFront = glm::normalize(front); 为了防止在运行代码开始，窗口第一次获取焦点时摄像机的抖动，设置一个bool变量检验是否第一次获取鼠标输入，若是，则把鼠标初始位置更新为xpos和ypos值： 123456if (firstMouse) //这个变量初始值是true&#123; lastX = xpos; lastY = ypos; firstMouse = false;&#125; 最后整理代码如下： 1234567891011121314151617181920212223242526272829303132void mouse_callback(GLFWwindow* window, double xpos, double ypos)&#123; if(firstMouse) &#123; lastX = xpos; lastY = ypos; firstMouse = false; &#125; float xoffset = xpos - lastX; float yoffset = lastY - ypos; lastX = xpos; lastY = ypos; float sensitivity = 0.05; xoffset *= sensitivity; yoffset *= sensitivity; yaw += xoffset; pitch += yoffset; if(pitch &gt; 89.0f) pitch = 89.0f; if(pitch &lt; -89.0f) pitch = -89.0f; glm::vec3 front; front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch)); front.y = sin(glm::radians(pitch)); front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch)); cameraFront = glm::normalize(front);&#125; 缩放视野(Field of View)或fov定义了我们能够看到的场景范围。当视野变小时，场景投影出来的空间就会见效，产生放大(Zoom In)的感觉，这里使用鼠标的滚轮来放大。同样申明一个鼠标滚轮的回调函数： 123456789void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)&#123; if (fov &gt;= 1.0f &amp;&amp; fov &lt;= 45.0f) fov -= yoffset; if (fov &lt;= 1.0f) fov = 1.0f; if (fov &gt;= 45.0f) fov = 45.0f;&#125; 以上设置了缩放范围限制在1.0f和45.0f之间 现在须每一帧都必须把透视矩阵上传到GPU，但现在使用fov变量作为它的视野： 1projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f); 记得注册鼠标滚轮回调函数： 1glfwSetScrollCallback(window, scroll_callback); 摄像机类最后的最后，我们把这个摄像机进行一次封装，以便以后调用。摄像机类可以在这里找到。 摄像机完整的项目文件可以在这里找到。 如果本项目对您有所帮助，希望能够获得您的 star。万分感谢！]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[坐标系统]]></title>
+    <url>%2Fopengl-coordinate-system.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 在了解到变换之后，开始学习坐标系统。 坐标系统分为五大类：局部空间(Local Space)或被称为物体空间(Object Space)指的是单个物体的坐标系统。 世界空间(World Space)指多个物体同时放在一个世界的坐标系统。物体坐标从局部空间变换到世界空间是由模型矩阵(Model Matrix)实现的。 模型矩阵：是一种变幻矩阵，它通过对物体进行位移、缩放、旋转来将它放置在预期的位置或朝向。 观察空间(View Space)或被称为视觉空间(Eye Space)、摄像机空间(Camera Space)将世界空间坐标转化为用户视野前方的坐标而产生的结果。也就是从摄像机视角所观察到的空间。通常由一系列的唯一和旋转的组合来完成。 这些组合被存储在一个观察矩阵(View Matrix)里，它被用来将世界坐标变幻到观察空间坐标。 裁剪空间(Clip Space)将规定范围之外的物体裁剪掉（不可视化）。它由投影矩阵(Projection Matrix)实现。 投影分为正射投影和透视投影。 创建正射投影矩阵可以用GLM的内置函数glm::ortho: 12345/*p1、p2：指定了平截头体的左右坐标， *p3、p4：制订了平截头体的底部和顶部， *p5、p6：定义了近平面和远平面的距离 */glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); 创建透视投影矩阵可以用以下函数创建： 12345/*p1：定义了fov(视野：`Field of View`)的值，并且设置了观察空间的大小，一般为了真实效果，设置为45.0f， *p2：设置宽高比，由视口宽除以高所得， *p3、p4：设置了平截头体的近、远平面距离，通常按以下值设置。 */glm::nat4 proj = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f); 屏幕空间(Screen Space)屏幕空间也就是我们在屏幕上所能看见的一个窗口空间 一个物体的顶点坐标起始于局部空间(Local Space)，在这里被称为局部坐标(Local Coordinate)，之后会变味世界坐标(World Coordinate)，观察坐标(View Coordinate)，裁剪坐标(Clip Coordinate)，在最后以屏幕坐标(Screen Coordinate)的形式结束 一个顶点坐标将会根据以下过程变换到裁剪坐标： V(clip) = M(projection) · M(view) · M(model) · V(local) 最后顶点应该被赋值到顶点着色器中的gl_Position， OpenGL将会自动进行透视除法和裁剪将其变化到标准化设备坐标，然后通过glViewPort内部的参数来将标准化设备坐标映射到屏幕坐标。 3D模型矩阵创建一个包含位移、缩放与旋转的模型矩阵，将物体变换到全局的世界空间，下面这个模型矩阵使得物体绕x轴旋转，使它看起来像放在地上一样： 12glm::mat4 model;model = glm::rotate(model, glm::radians(-55.0f), glm：：vec3(1.0f, 0.0f, 0.0f)); 观察矩阵创建一个观察矩阵，将物体在场景里稍微后移，以使得物体变成可见的： 12glm::mat4 viewview = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f)); 投影矩阵最后定义一个投影矩阵，在这里使用透视投影： 12glm::mat4 projectionprojection = glm::perspective(glm::radians(45.0f), screenWidth / screenHeight, 0.1f, 100.0f); 申明uniform变换矩阵创建变换矩阵后，将它们传入着色器。首先申明一个uniform变换矩阵然后将它乘以顶点坐标： 1234567891011#version 410 corelayout (location = 0) in vec3 aPos;...uniform mat4 model;uniform mat4 view;uniform mat4 projection;void main()&#123; gl_Position = projection * view * model * vec4(aPos, 1.0);&#125; 然后将矩阵传入着色器（通常在每次的渲染迭代中进行，因为变换矩阵会经常变动）： 1234int modelLoc = glGetUniformLocation(ourShader.ID, &quot;model&quot;);glUnifromMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));...//观察矩阵和投影矩阵类似 绘制旋转的立方体随时间旋转函数： 1model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5, 1.0f, 0.0f)); 使用glDrawArrays绘制立方体，总共36个顶点。 1glDrawArrays(GL_TRIANGLES, 0, 36); 开始深度测试 z缓冲也叫深度缓冲(Depth Buffer)，所有的深度信息都存储在其中。OpenGL会根据深度值来判断物体是否被遮挡，若是则丢弃。这个过程称为深度测试(Depth Testing)，开启它需要添加以下函数： 1glEnable(GL_DEPTH_TEST); 在每次迭代前需要清除深度缓冲： 1glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 绘制更多立方体首先在一个glm::vec3数组中定义10个立方体位置： 123456789101112glm::vec3 cubePositions[] = &#123; glm::vec3( 0.0f, 0.0f, 0.0f), glm::vec3( 2.0f, 5.0f, -15.0f), glm::vec3(-1.5f, -2.2f, -2.5f), glm::vec3(-3.8f, -2.0f, -12.3f), glm::vec3( 2.4f, -0.4f, -3.5f), glm::vec3(-1.7f, 3.0f, -7.5f), glm::vec3( 1.3f, -2.0f, -2.5f), glm::vec3( 1.5f, 2.0f, -2.5f), glm::vec3( 1.5f, 0.2f, -1.5f), glm::vec3(-1.3f, 1.0f, -1.5f) &#125;; 在渲染循环当中调用glDrawArrays10次： 12345678910for (unsigned int i = 0; i &lt; 10; i++) &#123; // calculate the matrix for each object and pass it to shader before drawing glm::mat4 model; model = glm::translate(model, cubePositions[i]); float angle = 20.0f * (i + 1); model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); ourShader.setMat4(&quot;model&quot;, model); glDrawArrays(GL_TRIANGLES, 0, 36);&#125; 最终绘制效果如下：]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Windows 软碟通 UltraISO-9.65.3237 原版注册码]]></title>
+    <url>%2Fultraiso.html</url>
+    <content type="text"><![CDATA[简体中文版： 名字：Guanjiu 注册码：A06C-83A7-701D-6CFC用户名：王涛 注册码：7C81-1689-4046-626F 多国语言版： Name：Home Key：4BA9-0D54-214A-C938]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Windows Anaconda（Python集成环境）]]></title>
+    <url>%2Fanaconda.html</url>
+    <content type="text"><![CDATA[Anaconda是一个用于科学计算的Python发行版，支持 Linux, Mac, Windows系统，提供了包管理与环境管理的功能，可以很方便地解决多版本python并存、切换以及各种第三方包安装问题。Anaconda利用工具/命令conda来进行package和environment的管理，并且已经包含了Python和相关的配套工具。 conda将几乎所有的工具、第三方包都当做package对待，甚至包括python和conda自身！ 点击此处下载Anaconda3(Python3) 密码：扫一扫文章下方二维码，关注公众号，回复 Anaconda3 即可获取密码。 点击此处下载Anaconda2(Python2) 密码：扫一扫文章下方二维码，关注公众号，回复 Anaconda2 即可获取密码。 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PHPStorm 破解版]]></title>
+    <url>%2Fphpstorm.html</url>
+    <content type="text"><![CDATA[PhpStorm 是最好的PHP开发工具，使用它进行PHP开发将会让你感觉到编程的乐趣。 点击此处下载 密码：扫描文章下方二维码，关注公众号，回复 PHPStorm 即可获取密码。 下面是PHPStorm破解方法： 1、打开DMG镜像，将app拖入应用程序 2、修改/etc/hosts文件，添加一行：0.0.0.0 account.jetbrains.com 3、打开PHPStorm应用程序。选择Activation Code 4、打开http://idea.lanyus.com，点击获得注册码并复制到Activation Code中完成注册 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[PyCharm 破解]]></title>
+    <url>%2Fpycharm.html</url>
+    <content type="text"><![CDATA[PyCharm是一种Python IDE，具有调试、语法高亮、Project管理、代码跳转、智能提示、自动完成、单元测试、版本控制的功能。此外，该IDE还提供了一些高级功能，以用于支持Django框架下的专业Web开发。 点击此处下载 密码：扫描文章下方二维码，关注公众号，回复 PyCharm 即可获取密码。 下面是PyCharm破解方法： 1、打开DMG镜像，将app拖入应用程序 2、修改/etc/hosts文件，添加一行：0.0.0.0 account.jetbrains.com 3、打开PyCharm应用程序。选择Activation Code 4、打开http://idea.lanyus.com，点击获得注册码并复制到Activation Code中完成注册 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[iterm2]]></title>
+    <url>%2Fiterm2.html</url>
+    <content type="text"><![CDATA[iTerm2与Terminal都是mac os系统下的应用软件，用来运行shell这个程序。Termnial是系统自带的，iTerm2需要下载。iTerm与Terminal相比功能更强大，界面也更为美观。 iTerm2 iTerm2是一个非常好的终端模拟器，官网地址：http://iterm2.com/，需要下载安装它。（如果不能访问，可以点击此处下载密码：扫描文章下方二维码，关注公众号，回复 iterm2 即可获取密码） 安装zsh 打开iTerm，输入：brew install zsh zsh-completions 这是用Homebrew装，需要Mac上有Homebrew，它的网站：https://brew.sh/ Oh My Zsh Oh My Zsh 是基于 zsh 的一个扩展工具集，它提供了丰富的扩展功能 可以通过curl安装：sh -c “$(curl -fsSL https://raw.githubusercontent.co … er/tools/install.sh)” 或者通过wget安装：sh -c “$(wget https://raw.githubusercontent.co … er/tools/install.sh -O -)” 更改主题 修改配置文件：vim ~/.zshrc 把 ZSH_THEME 的值改为 agnoster 应用配置：chsh -s /bin/zsh 更改配色方案 在 Preferences-&gt;Profiles-&gt;Colors 中下拉框里选择 Solarized Dark 安装 powerline 字符集 点击下载字符集（密码：描文章下方二维码，关注公众号，回复 powerline 即可获取密码） 解压后进入目录，执行安装命令：./instal.sh 更改iTerm字体：在 Preferences-&gt;Profiles-&gt;Text 中选择带后缀 for Powerline 的字体 修改 vim 配置 修改文件：vim ~/vimrc 添加如下内容： set ruler set number set background=dark syntax enable colorscheme solarized]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Microsoft Visual Studio 注册码]]></title>
+    <url>%2Fvisualstudio.html</url>
+    <content type="text"><![CDATA[Visual Studio 2017（VS2017） 企业版 Enterprise 注册码：NJVYC-BMHX2-G77MM-4XJMR-6Q8QF Visual Studio 2017（VS2017） 专业版Professional 激活码key：KBJFW-NXHK6-W4WJM-CRMQB-G3CDH 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>工具</category>
+      </categories>
+      <tags>
+        <tag>Tools</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[机器学习-周志华]]></title>
+    <url>%2Fmachine-learning.html</url>
+    <content type="text"><![CDATA[《机器学习》是计算机科学与人工智能的重要分支领域。《机器学习》作为该领域的入门教材，在内容上尽可能涵盖机器学习基础知识的各方面。 点击这里下载 密码：扫描文章下方二维码，关注公众号，回复 机器学习 即可获取密码。 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>书籍</category>
+      </categories>
+      <tags>
+        <tag>Books</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[统计学习方法-李航]]></title>
+    <url>%2Fstatistics.html</url>
+    <content type="text"><![CDATA[统计学习方法》是计算机及其应用领域的一门重要的学科。《统计学习方法》全面系统地介绍了统计学习的主要方法，特别是监督学习方法，包括感知机、k近邻法、朴素贝叶斯法、决策树、逻辑斯谛回归与熵模型、支持向量机、提升方法、EM算法、隐马尔可夫模型和条件随机场等。 点击这里下载 密码：扫描文章下方二维码，关注公众号，回复 统计 即可获取密码。 本站所有资源仅供学习使用，请在24小时内删除，本人不承担任何相关责任!]]></content>
+      <categories>
+        <category>书籍</category>
+      </categories>
+      <tags>
+        <tag>Books</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[使用代理服务器解决无法升级WordPress的问题]]></title>
+    <url>%2Fwordpress-update.html</url>
+    <content type="text"><![CDATA[使用阿里云服务器安装 WordPress 时，常常遇到FTP连接失败问题以及 WordPress 无法升级或者插件更新失败。这里给出一种解决办法 FTP连接问题 // 解决需要FTP问题 define("FS_METHOD","direct"); define("FS_CHMOD_DIR", 0777); define("FS_CHMOD_FILE", 0777); 使用国外代理服务器 编辑 wp-config.php 文件，在底部增加一下代码： define('WP_PROXY_HOST', 'us.centos.bz'); define('WP_PROXY_PORT', '31281'); 更改配置后更新即可，更新完成后注释这两行代码，以免影响WordPress使用 WordPress升级时显示另一项更新正在进行 这是由于在升级Wordpress时，Wordpress会在数据库wp_options表中增加core_updater.lock记录。如中途打断Wordpress升级，这个记录会留在数据库中。当下次升级时，Wordpress检测到此记录的存在就会返回”另一更新正在进行”。可通过以下办法解决： 登陆服务器WordPress数据库，假设表前缀是wp，执行下面这条SQL语句： delete from wp_options where option_name='core_updater.lock';]]></content>
+      <categories>
+        <category>问题</category>
+      </categories>
+      <tags>
+        <tag>WordPress</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[图形的变换]]></title>
+    <url>%2Fopengl-transform.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 数学库包 首先我们需要引入专门为OpenGL量身定做的数学库——GLM(OpenGL Mathematics)我们可以从它的网站上下载。 GLM的网站可能需要通过VPN访问，如果你无法访问，你可以点击这里进行下载。如果你使用的是Visual Studio 2017 ，那么在你搭建完开发环境后，你可以直接引入GLM的相关头文件 我们需要引入以下3个头文件： #include &lt;glm/glm.hpp&gt; #include &lt;glm/gtc/matrix_transform.hpp&gt; #include &lt;glm/gtc/type_ptr.hpp&gt; 变换 uniform 在变换之前，我们需要修改顶点着色器，让其接收一个 mat4 的 uniform 变量，然后在用矩阵 uniform 乘以位置向量： #version 430 core layout (location = 0) in vec3 aPos; layout (location = 1) in vec2 aTexCoord; out vec2 TexCoord; uniform mat4 transform; void main() { gl_Position = transform * vec4(aPos, 1.0f); TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y); } 变换矩阵 首先我们把箱子逆时针旋转90度（沿着Z轴旋转），然后缩放0.5倍。我们需要创建变换矩阵： glm::mat4 transfrom transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0)); transform = glm::scal(transform, glm::vec3(0.5, 0.5, 0.5)); 可以看到，变换顺序和程序编写顺序刚好相反。在程序中，我们先写出旋转变换，然后再写缩放变换 glm::rotate 函数是旋转函数。GLM希望旋转的角度是弧度制，所以使用了 glm::radians 对角度进行转换。同时我们的纹理是在 XY 平面上，所以我们把它绕着Z轴 (0.0, 0.0, 1.0) 进行旋转。glm::scal 函数是缩放函数，我们需要将纹理图像对应的轴缩放 (0.5, 0.5, 0.5) 倍。 把变换矩阵传递给着色器 unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform"); glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans)); 首先用 glGetUniformLocation 函数查询了 uniform 变量地址。 然后用 glUniformMatrix4fv 函数把矩阵数据发送给着色器。第一个参数是 uniform 的位置值；第二个参数告诉OpenGL发送的矩阵个数，这里是1；第三个参数确定是否进行矩阵置换（交换行和列）。GLM中不需要，所以设置为 GL_FALSE;第四个参数是矩阵数据，但GLM并不是把矩阵存储为OpenGL期望接受的格式，因此这里用 glm::value_ptr 函数变换数据。 以上完成了纹理图像的缩放旋转 接下来我们让纹理图像随着时间变换而不断旋转 我们只需要将变换矩阵更改成如下形式即可： glm::mat4 transform; transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f)); transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); glm::translate 函数是位移函数，将纹理图像位移了 (0.5, -0.5, 0.0) 个单位，将纹理图像位移到了屏幕的右下角。 我们把旋转函数的第二个参数改成了 glfwGetTime()，因此纹理图像旋转的弧度是随着运行时间的增加而不断增加的。 运行效果如下： 本文的代码可在这里找到，如果对您有所帮助，不妨点个赞。☺]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[OpenGL中坐标的变换——矩阵变换]]></title>
+    <url>%2Fopengl-matrix.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 在OpenGL图形绘制过程中，常常需要对相应元素的坐标进行变换产生动画效果，而元素的坐标则是用矩阵来表示。因此在本文当中记录一下矩阵的变换。 矩阵与向量相关概念在此不做解释了，如果看官不了解，可自行百度查询。在此仅记录缩放、位移和旋转的变换。 在OpenGL中，一般使用四维向量来描述对应元素的 x轴、y轴、z轴 位置以及 alpha 值。 缩放 对一个向量进行缩放(Scaling)就是对向量的长度进行缩放，向量方向保持不变。 假设我们要使向量 (x, y, z, 1) 的 x 值缩放 S1 倍， y 值缩放 S2 倍， z 值缩放 S3 倍。我们需设置这么一个缩放矩阵： 缩放只需要用缩放矩阵乘上需要缩放的向量即可： 位移 位移(Translation)是在原始向量的基础上加上另一个向量从而获得一个在不同位置的新向量的过程 我们把位移向量表示为： (Tx, Ty, Tz,) ，定义位移矩阵矩阵为： 旋转 下面给出几种沿不同轴旋转的矩阵（选装角度为θ）： 沿x轴旋转 沿y轴旋转 沿z轴旋转 沿任一轴 (Rx, Ry, Rz) 旋转 组合变换 组合变换只需要依次乘上变换矩阵即可。（从右往左乘） 例如：将向量 (x, y, z) 先缩放2倍，再位移 (1, 2, 3) 个单位： 变换矩阵如下： 最终结果如下： 即向量 (x, y, z) 先缩放了2倍，然后位移了 (1, 2, 3) 个单位。]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[OpenGL设置纹理]]></title>
+    <url>%2Fopengl-textures.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 纹理 在这份代码中我使用了下面这张纹理图片： 纹理坐标： 从上图中可以看出，纹理的坐标远点是从图片的左下方开始。绘制矩形/三角形时对应的纹理坐标如下： //float vertices[] = { // // positions // colors // texture coords // 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f ,// top right // 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,// bottom right // -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,// bottom left // -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f// top left //}; //unsigned int indices[] = { // note that we start from 0! // 0, 1, 3, // first Triangle // 1, 2, 3 // second Triangle //}; float vertices[] = { // 渲染三角形形所需代码 -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // 渲染三角形所需代码 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // 渲染三角形所需代码 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, 1.0f // 渲染三角形所需代码 }; // 渲染三角形所需代码 矩形的绘制是通过绘制两个三角形得到，我们只需给出4个顶点属性和一个索引数组即可绘制出矩形 接下来绑定VAO,VBO,EBO： unsigned int VBO, VAO, EBO; glGenVertexArrays(1, &amp;VAO); glGenBuffers(1, &amp;VBO); //glGenBuffers(1, &amp;EBO); // 渲染矩形所需代码 // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s). glBindVertexArray(VAO); glBindBuffer(GL_ARRAY_BUFFER, VBO); glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // 渲染矩形所需代码 //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); // 渲染矩形所需代码 解析顶点数据： // 这是绘制的顶点坐标属性 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0); glEnableVertexAttribArray(0); // 这是绘制的顶点颜色属性 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float))); glEnableVertexAttribArray(1); // 这是顶点对应的纹理坐标 glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float))); glEnableVertexAttribArray(2); 纹理设置 首先创建一个纹理ID并绑定 unsigned int texture; glGenTextures(1, &amp;texture); glBindTexture(GL_TEXTURE_2D, texture); 设置环绕、过滤方式 // set the texture wrapping parameters glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // set texture filtering parameters glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 生成并加载纹理 int width, height, nrChannels; char *texturePath = "../src/wall.jpg"; // 这里填写你的图片路径 unsigned char *data = stbi_load(texturePath, &amp;width, &amp;height, &amp;nrChannels, 0); // stbi_load函数首先接受一个图像文件的位置作为输入。接下来它需要三个int作为它的第二、第三和第四个参数，stb_image.h将会用图像的宽度、高度和颜色通道的个数填充这三个变量。我们之后生成纹理的时候会用到的图像的宽度和高度的。 在这里使用到了stb_image.h 在使用stb_image.h之前，需要创建一个stb_image.cpp文件，并添加如下内容：通过定义STB_IMAGE_IMPLEMENTATION，预处理器会修改头文件，让其只包含相关的函数定义源码。使用时只需要在程序中包含stb_image.h文件就可以了。 #define STB_IMAGE_IMPLEMENTATION #include "stb_image.h" 接下来使用前面载入的图片生成纹理： if (data) { glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); glGenerateMipmap(GL_TEXTURE_2D); } else { std::cout &lt;&lt; "Failed to load texture" &lt;&lt; std::endl; } // 释放图像内存 stbi_image_free(data); 当调用glTexImage2D时，当前绑定的纹理对象就会被附加上纹理图像。然而，目前只有基本级别(Base-level)的纹理图像被加载了，如果要使用多级渐远纹理，我们必须手动设置所有不同的图像（不断递增第二个参数）。或者，直接在生成纹理之后调用glGenerateMipmap。这会为当前绑定的纹理自动生成所有需要的多级渐远纹理。 最后应用纹理 while (!glfwWindowShouldClose(window)) { // input // ----- processInput(window); // render // ------ glClearColor(0.2f, 0.3f, 0.3f, 1.0f); glClear(GL_COLOR_BUFFER_BIT); ourShader.use(); glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized //glDrawArrays(GL_TRIANGLES, 0, 6); //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // glBindVertexArray(0); // no need to unbind it every time glDrawArrays(GL_TRIANGLES, 0, 3); // 渲染三角形所需代码 //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 渲染矩形所需代码 // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.) // ------------------------------------------------------------------------------- glfwSwapBuffers(window); glfwPollEvents(); } // optional: de-allocate all resources once they've outlived their purpose: // ------------------------------------------------------------------------ glDeleteVertexArrays(1, &amp;VAO); glDeleteBuffers(1, &amp;VBO); glDeleteBuffers(1, &amp;EBO); // glfw: terminate, clearing all previously allocated GLFW resources. // ------------------------------------------------------------------ glfwTerminate(); return 0; } 你可以在这里找到源码，最后渲染出的三角形与矩形（只需要将注释中三角形与矩形的代码互换即可）效果如下：]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[着色器的一些归纳总结]]></title>
+    <url>%2Fopengl-shaders.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 着色器(shaders) 结构(structure) #version version_number in type in_variable_name; in type in_variable_name; out type out_variable_name; uniform type uniform_name; int main() { // 处理输入并进行一些图形操作 ... // 输出处理的结果到输出变量 out_variable_name = weird_stuff_we_processed; } 查询顶点属性上限 查询 GL_MAX_VERTEX_ATTRIBS 获取能申明的顶点属性上限（一般由硬件决定，OpenGL确保至少有16个包含4分量的顶点属性可用） unsigned int nrAttributes; glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &amp;nrAttributes); std::cout &lt;&lt; "Maximun nr of vertex attributes supported:" &lt;&lt; nrAttributes &lt;&lt; std::endl; vector（大多时候我们使用vecn，float足够满足大多数要求） vecn：包含n个float分量的默认向量 bvecn：包含n个bool分量的向量 ivecn：包含n个int 分量的向量 uvecn：包含n个unsigned int分量的向量 dvecn：包含n个double分量的向量 分量获取 向量的分量可通过vec.x这种方式获取，vec.x、vec.y、vec.z、vec.w获取第1、2、3、4个分量。GLSL也允许对颜色使用rgba，或是对纹理坐标使用stpq访问相同的分量 向量重组（Swizzling） vec2 someVec; vec4 differentVec = someVec.xyxx; vec3 anotherVec = differentVec.zyw; vec4 otherVec = someVec.xxxx + anotherVec.yxzy vec2 vect = vec2(0.5, 0.7); vec4 result = vec4(vect, 0.0, 0.0); vec4 otherResult = vec4(result.xyz, 1.0); 输入与输出 GLSL定义了in和out关键字来实现着色器的输入输出，只要一个输出变量与下一个着色器阶段的输入匹配，它就会传递下棋，但在顶点和片段着色器中会有点不同 顶点着色器的输入特殊在它从顶点数据中直接接收输入。为了定义定点数据该如何管理，使用location这一元数据指定输入变量，这样就可以在CPU上配置顶点属性。顶点着色器需要为它的输入提供一个额外的layout标识，这样才能把它链接到顶点数据。 改动程序中的着色器 顶点着色器： #version 410 core layout (location = 0) in vec3 aPos; // 位置变量的属性值为0 out vec4 vertexColor; // 为片段着色器指定一个颜色输出 void main() { gl_Position = vec4(aPos, 1.0); // 注意，这里把一个vec3作为vec4的构造器参数 vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // 把输出变量设置为暗红色 } 片段着色器： #version 410 core out vec4 FragColor; in vec4 vertexColor; // 从顶点着色器传来的输入变量（名称、类型相同） void main() { FragColor = vertexColor; } 这样完成了从顶点着色器向片段着色器发送数据，改变了三角形的颜色 Uniform Uniform是一种从CPU中的应用向GPU中的着色器发送数据的方式，但它和定点属性有些不同。 1、Uniform是全局的，Uniform变量必须在每个着色器程序对象中都是独一无二的，而且它可以被着色器程序的任意着色器在任意阶段访问。2、无论把Uniform值设置成什么，它会一直保存它们的数据，直到它们被重置或更新。 在一个着色器中添加Uniform关键字至类型和变量名前来生命一个GLSL的Uniform。 #version 410 core out vec4 FragColor; uniform vec4 ourColor; // 在OpenGL程序代码中设定这个变量 void main() { FragColor = ourColor; } 如果申明了一个uniform却在GLSL代码中没用过，编译器会静默移除这个变量，导致最后编译出的版本中不会包含它，这可能导致几个非常麻烦的错误！ 接下来给uniform添加数据，使得三角形颜色随时间而改变 // 获取运行的秒数 float timeValue = glfwGetTime(); // sin函数（引入cmath）让颜色在0.0到1.0之间改变 float greenValue = sin(timeValue) / 2.0f + 0.5f; // 查询uniform ourColor的位置值，如果返回-1则表示没有找到这个位置值 int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor"); glUseProgram(shaderProgram); // 设置uniform值。 glad_glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f); 注意，查询uniform地址不要求你之前使用过的着色器程序，但更新一个uniform之前必须先使用程序（调用glUseProgram），因为它是在当前激活的着色器中设置uniform的 因为OpenGL其核心是一个C库，所以它不支持类型重载，在函数参数不同的时候就要为其定义新的函数；glUniform就是一个典型的例子： 后缀 含义 f 函数需要一个float作为它的值 i 函数需要一个int作为它的值 ui 函数需要一个unsigned int作为它的值 3f 函数需要3个float作为它的值 fv 函数需要一个float向量/数组作为它的值 本文的代码可在这里找到，如果对您有所帮助，不妨点个赞。☺]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[使用GLFW与GLAD创建窗口并绘制三角形]]></title>
+    <url>%2Fopengl-glfw-glad.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ 创建窗口 1、首先我们引入必要的头文件： #include "glad.h" #include &lt;GLFW/glfw3.h&gt; 请确保GLAD头文件的引入在GLFW之前，GLAD的头文件包含了正确的OpenGL头文件(例如GL/gl.h)，所以需要在其他依赖于OpenGL的头文件之前引入GLAD 2、实例化GLFW窗口 int main() { glfwInit(); glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1); glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // Mac必须添加此行，Windows忽略 glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); return 0; } 前两行代码指定了OpenGL的主版本和次版本号(4.1)，第三行代表着使用核心模式(Core-profile)，意味着我们只能使用OpenGL功能的一个子集（没有我们不再需要的向后兼容特性）。 3、接下来创建一个窗口对象，它存放了所有和窗口相关的数据，而且会被GLFW的其他函数频繁调用 GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL); if(window == NULL) { std::cout &lt;&lt; "Failed to create GLFW window" &lt;&lt; std::endl; glfwTerminate(); return -1; } glfwMakeContexCurrent(window); glfwCreateWindow函数，前两个参数是窗口的宽高，第三个参数是这个窗口的命名，后两个暂时忽略，返回了一个GLFWwindow对象。glfwMakeContexCurrent函数告诉GLFW将窗口的上下文设置为当前线程的主上下文。 4、GLAD是用来管理OpenGL的函数指针的，所以调用任何OpenGL函数之前需要初始化GLAD if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) { std::cout &lt;&lt; "Failed to initialize GLAD" &lt;&lt; std::endl; return -1; } 我们给GLAD传入了用来加载系统相关的OpenGL函数指针地址的函数。GLFW给我们的是glfwGetProcAdress，它根据我们编译的系统定义了正确的函数。 5、视口 在开始渲染之前必须告诉OpenGL渲染窗口(Viewport)的尺寸大小，这样OpenGL才能知道怎样根据窗口大小显示数据和坐标。 // 此函数设置窗口的维度(Dimension) glViewport(0, 0, 800, 600); 前两个参数控制窗口左下角位置，后两个控制渲染窗口的宽高（像素）。也可将视口维度设置比GLFW窗口维度小，这样子之后所有的OpenGL渲染将会在一个更小的窗口中显示，这样子的话我们也可以将一些其它元素显示在OpenGL视口之外。 6、对窗口注册回调函数(CallbackFunction) 函数注册后会在每次窗口大小改变的时候调用，视口也会随之调整 函数原型如下： void framebuffer_size_callback(GLFWwindow* window, int width, int height) { glViewport(0, 0, width, height); } 进行注册，告诉GLFW每当窗口调整时调用此函数： glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 7、为了使图像能够持续显示而不是一闪即逝，我们需要写一个渲染循环，使得GLFW在退出之前一直保持运行 while(!glfwWindowShouldClose(window)) { glfwSwapBuffers(window); glfwPollEvents(); } glfwWindowShouldClose函数在每次循环开始前检查一次GLFW是否被要求退出，是的话返回true，循环结束 glfwPollEvents函数检查是否有触发事件，比如键盘、鼠标等信号输入，然后更新窗口状态，调用相应的回调函数（可通过回调方法手动设置）。 glfwSwapBuffers函数会交换颜色缓冲 8、渲染结束后释放所有资源 glfwTerminate(); return 0; 至此，窗口创建完成 接下来我们进行一些完善工作 9、接下来我们添加一个触发时间，当用户按下Esc键时关闭窗口。 void processInput(GLFWwindow *window) { if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true); } glfwGetKey函数需要一个窗口以及一个按键作为输入。这个函数将会返回这个案件是否正在被按下，我们将其定义在processInput函数当中 接下来在渲染循环的每一个迭代中调用processInput： while (!glfwWindowShouldClose(window)) { processInput(window); // 这里是渲染指令 ... glfwSwapBuffers(window); glfwPollEvents(); } 10、我们使用一个自定义的颜色清空屏幕，使得在每个新的渲染迭代开始后清除上一次渲染结果，并显示我们自定义的颜色 glClearColor(0.2f, 0.3f, 0.3f, 1.0f); glClear(GL_COLOR_BUFFER_BIT); 渲染一个三角形 开始绘制之前，我们需要给OpenGL输入一些顶点数据（范围在[-1, 1]，需要自行进行坐标变换）。我们需要渲染一个三角形，因此我们需要三个顶点位置，将它定义为一个float数组： // 由于我们绘制的是一个2D三角形，因此，将其顶点的z坐标都设置为0 float vertices[] = { -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f }; 接下来使用glGenBuffers函数和一个缓冲ID生成一个VBO对象，并使用glBindBuffer函数把新创建的缓冲绑定到GL_ARRAY_BUFFER目标上： unsigned int VBO; glGenBuffers(1, &amp;VBO); glBindBuffer(GL_ARRAY_BUFFER, VBO); 从这一刻起，我们使用的任何（在GL_ARRAY_BUFFER目标上的）缓冲调用都会用来配置当前绑定的缓冲(VBO)。然后我们可以调用glBufferData函数，它会把之前定义的顶点数据复制到缓冲的内存中： glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); 第一个参数是目标缓冲的类型，顶点缓冲对象当前绑定到GL_ARRAY_BUFFER目标上。 第二个参数指定传输数据大小。 第三个参数是我们实际发送的数据。 第四个参数指定了显卡管理数据的方式，有一下三种形式：GL_STATIC_DRAW：数据不会或几乎不改变。GL_DYNAMIC_DRAW：数据会改变很多。GL_STREAM_DRAW：数据每次绘制都会改变。 顶点着色器 首先用GLSL(OoenGL Shading Language)编写顶点着色器，然后编译这个着色器。下面给出一个非常基础的顶点着色器源代码： #version 410 core layout (location = 0) in vec3 aPos; void main() { gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0); } 首先申明OpenGL版本4.1（对应410）。接下来使用in关键字，在顶点着色器中声明所有的输入顶点属性(Input Vertex Attribute)。现在我们只关心位置(Position)数据，所以我们只需要一个顶点属性。GLSL有一个向量数据类型，它包含1到4个float分量，包含的数量可以从它的后缀数字看出来。由于每个顶点都有一个3D坐标，我们就创建一个vec3输入变量aPos。我们同样也通过layout (location = 0)设定了输入变量的位置值(Location)你后面会看到为什么我们会需要这个位置值。 编译着色器 先创建一个着色器对象，注意还是用ID来引用。所以我们储存这个顶点着色器为unsigned int，然后用glCreateShader创建这个着色器： unsigned int vertexShader; vertexShader = glCreateShader(GL_VERTEX_SHADER); 我们把需要创建的着色器类型以参数形式提供给glCreateShader。由于我们正在创建一个顶点着色器，传递的参数是GL_VERTEX_SHADER。 接下来把着色器源码附加到着色器对象上，并编译它： glShaderSource(vertexShader, 1, &amp;vertexShaderSource, NULL); glCompileShader(vertexShader); glShaderSource函数把要编译的着色器对象作为第一个参数。第二参数指定了传递的源码字符串数量，这里只有一个。第三个参数是顶点着色器真正的源码，第四个参数我们先设置为NULL。 片段着色器 先给出片段着色器源码： #version 410 core out vec4 FragColor; void main() { FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); } 片段着色器只需要一个输出变量，这个变量是一个4分量向量，它表示的是最终的输出颜色，我们应该自己将其计算出来。我们可以用out关键字声明输出变量，这里我们命名为FragColor。下面，我们将一个alpha值为1.0(1.0代表完全不透明)的橘黄色的vec4赋值给颜色输出。 编译片段着色器的过程与顶点着色器类似，只不过我们使用GL_FRAGMENT_SHADER常量作为着色器类型： unsigned int fragmentShader; fragmentShader = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(fragmentShader, 1, &amp;fragmentShaderSource, NULL); glCompileShader(fragmentShader); 着色器程序 着色器程序对象(Shader Program Object)是多个着色器合并之后并最终链接完成的版本。如果要使用刚才编译的着色器我们必须把它们链接(Link)为一个着色器程序对象，然后在渲染对象的时候激活这个着色器程序。已激活着色器程序的着色器将在我们发送渲染调用的时候被使用。 创建程序对象： unsigned int shaderProgram; shaderProgram = glCreateProgram(); glCreateProgram函数创建一个程序，并返回新创建程序对象的ID引用。现在我们需要把之前编译的着色器附加到程序对象上，然后用glLinkProgram链接它们： glAttachShader(shaderProgram, vertexShader); glAttachShader(shaderProgram, fragmentShader); glLinkProgram(shaderProgram); 最后调用glUseProgram函数，激活程序： glUseProgram(shaderProgram); 着色器对象链接到程序对象以后，需要删除着色器对象： glDeleteShader(vertexShader); glDeleteShader(fragmentShader); 链接定点属性 顶点着色器允许我们指定任何以顶点属性为形式的输入。这使其具有很强的灵活性的同时，它还的确意味着我们必须手动指定输入数据的哪一个部分对应顶点着色器的哪一个顶点属性。所以，我们必须在渲染前指定OpenGL该如何解释顶点数据。 我们的顶点缓冲数据会被解析为下面这样子： 因此使用glVertexAttribPointer函数告诉OpenGL该如何解析顶点数据： glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); glEnableVertexAttribArray(0); 第一个参数指定我们要配置的顶点属性 第二个参数指定顶点属性的大小。 第三个参数指定数据的类型 第四个参数定义我们是否希望数据被标准化(Normalize)。如果我们设置为GL_TRUE，所有数据都会被映射到0（对于有符号型signed数据是-1）到1之间。 第五个参数是步长，它告诉我们在连续的顶点属性组之间的间隔。 最后一个参数表示位置数据在缓冲中起始位置的偏移量(Offset)。 接下来使用glEnableVertexAttribArray函数，以顶点属性位置值作为参数，启用定点属性。 代码最终大概长这样： // 0. 复制顶点数组到缓冲中供OpenGL使用 glBindBuffer(GL_ARRAY_BUFFER, VBO); glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // 1. 设置顶点属性指针 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); glEnableVertexAttribArray(0); // 2. 当我们渲染一个物体时要使用着色器程序 glUseProgram(shaderProgram); // 3. 绘制物体 someOpenGLFunctionThatDrawsOurTriangle(); 顶点数组对象 Vertex Array Object(VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中。 OpenGL的核心模式要求我们使用VAO，所以它知道该如何处理我们的顶点输入。如果我们绑定VAO失败，OpenGL会拒绝绘制任何东西。 一个顶点数组对象会储存以下这些内容： glEnableVertexAttribArray和glDisableVertexAttribArray的调用。通过glVertexAttribPointer设置的顶点属性配置。通过glVertexAttribPointer调用与顶点属性关联的顶点缓冲对象。 VAO的创建类似VBO： unsigned int VAO; glGenVertexArrays(1, &amp;VAO); 要使用VAO，只需使用glBindVertexArray绑定VAO。从绑定之后起，我们应该绑定和配置对应的VBO和属性指针，之后解绑VAO供之后使用。当我们打算绘制一个物体的时候，我们只要在绘制物体前简单地把VAO绑定到希望使用的设定上就行了。 代码大概是这样的： // ..:: 初始化代码（只运行一次 (除非你的物体频繁改变)） :: .. // 1. 绑定VAO glBindVertexArray(VAO); // 2. 把顶点数组复制到缓冲中供OpenGL使用 glBindBuffer(GL_ARRAY_BUFFER, VBO); glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // 3. 设置顶点属性指针 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); glEnableVertexAttribArray(0); [...] // ..:: 绘制代（渲染循环中） :: .. // 4. 绘制物体 glUseProgram(shaderProgram); glBindVertexArray(VAO); someOpenGLFunctionThatDrawsOurTriangle(); 绘制三角形 glUseProgram(shaderProgram); glBindVertexArray(VAO); glDrawArrays(GL_TRIANGLES, 0, 3); glDrawArrays函数第一个参数是打算绘制的图元的类型。第二个参数制订了顶点数组的起始索引，第三个参数指定我们打算绘制的顶点个数。 最终三角形是长这样的： 你可以在这里找到源码：三角形、矩形。]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[在Mac和Windows上配置OpenGL环境]]></title>
+    <url>%2Fopengl-env.html</url>
+    <content type="text"><![CDATA[最近在学习OpenGL，把学习的一些过程写在这里，希望与大家共同分享讨论。欢迎光临我的个人网站Orient一起讨论学习。这里是我的GitHub，如果您喜欢，不妨点个赞？☺ Learning OpenGL on Xcode 安装glfw glfw是一个OpenGL的应用框架，支持Linux和Windows。glfw主要用来处理特定操作系统下的特定任务，例如OpenGL窗口管理、分辨率切换、键盘、鼠标以及游戏手柄、定时器输入、线程创建等。 1、在终端中运行命令brew install glfw3 glfw将会被安装在/usr/local/Cellar/glfw 2、配置路径 在/usr/local/Cellar/glfw路径下找到header和lib对应路径，在Xcode-&gt;Preferences-&gt;Localtion-&gt;Custom Paths设置路径： 3、配置header/library searcher path 在项目Build Settings中搜索header search，添加如下配置： 搜索library search，添加如下配置： 4、在项目中导入需要的库文件，如下图示： 配置glad OpenGL只是一个标准/规范，具体的实现是有驱动开发商针对特定显卡实现的。由于OpenGL驱动版本众多，它大多数函数的位置都无法在编译时确定下来，需要在运行时查询。开发者需要在运行时获取函数地址并将其保存在一个函数指针中供以后使用。而取得地址的方法非常复杂、繁琐。glad库是目前最新、最流行的简化此过程的库。 1、打开glad的在线服务2、将语言设置为C/C++，在API选项中，选择3.3以上的OpenGL版本（我的电脑选择的是4.1版本，3.3及更新的版本也能正常工作）3、将模式（Profile）设置为Core，保证生成加载器（Generate a loader）选项是选中的。4、先暂时忽略拓展（Extensions）中内容。点击生成（Generate）5、下载生成的zip包（包含glad.c、glad,h和khrplatform.h），解压添加到项目中。 至此Mac配置基本完成 点击这里下载配置好的项目，您只需要更改main.cpp中的代码即可开始OpenGL的学习 如果这份代码对您有所帮助，烦请您动动手指点个Star。谢谢！ Learning OpenGL on Visual Studio 2017 配置OpenGL 1、新建Win32 控制台应用程序，勾选空项目。2、在菜单：项目-&gt;管理NuGet程序包 中搜索nupengl，安装nupengl.core 配置glad库 1、在glad在线服务中配置glad，方法同Xcode。2、将生成的zip文件下载解压。将其中的include与src文件夹复制到项目目录中，并将三个文件拖入项目中： 3、在项目-&gt;属性-&gt;VC++目录中，添加包含目录和源目录 至此Visual Studio配置基本完成]]></content>
+      <categories>
+        <category>OpenGL</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Mac下解决ssh链接linux服务器丢包问题]]></title>
+    <url>%2Fssh-linux.html</url>
+    <content type="text"><![CDATA[ssh连接云服务器一段时间不操作之后进入Terminal，会发现不再响应，需要重新连接 连接服务器方式 ssh root@公网IP -p 22 如果一段时间不操作之后进入Terminal，会发现不在响应，需要重新连接 解决方案 方案一： 在本地mac端编辑~/.ssh/config文件添加一行： ServerAliveInterval 60 方案二： 在服务器端编辑/etc/ssh/sshd_config文件添加一行： ServerAliveInterval 60 方案三： 若只想保持当前连接，可使用以下命令： ssh -o ServerAliveInterval=60 user@sshserver]]></content>
+      <categories>
+        <category>问题</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+      </tags>
+  </entry>
 </search>
