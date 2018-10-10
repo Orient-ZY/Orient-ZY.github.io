@@ -30,13 +30,6 @@
   </url>
   
   <url>
-    <loc>orient.ren/statistics.html</loc>
-    
-    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>orient.ren/visualstudio.html</loc>
     
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
@@ -45,6 +38,13 @@
   
   <url>
     <loc>orient.ren/ultraiso.html</loc>
+    
+    <lastmod>2018-10-08T07:32:10.782Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>orient.ren/statistics.html</loc>
     
     <lastmod>2018-10-08T07:32:10.782Z</lastmod>
     
@@ -79,7 +79,7 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-textures.html</loc>
+    <loc>orient.ren/opengl-shaders.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
@@ -93,14 +93,14 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-shaders.html</loc>
+    <loc>orient.ren/opengl-textures.html</loc>
     
     <lastmod>2018-10-08T07:32:10.780Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/opengl-coordinate-system.html</loc>
+    <loc>orient.ren/opengl-env.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
     
@@ -114,16 +114,9 @@
   </url>
   
   <url>
-    <loc>orient.ren/opengl-env.html</loc>
+    <loc>orient.ren/opengl-coordinate-system.html</loc>
     
     <lastmod>2018-10-08T07:32:10.779Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>orient.ren/opengl-camera.html</loc>
-    
-    <lastmod>2018-10-08T07:32:10.778Z</lastmod>
     
   </url>
   
@@ -135,14 +128,21 @@
   </url>
   
   <url>
-    <loc>orient.ren/anaconda.html</loc>
+    <loc>orient.ren/opengl-camera.html</loc>
+    
+    <lastmod>2018-10-08T07:32:10.778Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>orient.ren/iterm2.html</loc>
     
     <lastmod>2018-10-08T07:32:10.777Z</lastmod>
     
   </url>
   
   <url>
-    <loc>orient.ren/iterm2.html</loc>
+    <loc>orient.ren/anaconda.html</loc>
     
     <lastmod>2018-10-08T07:32:10.777Z</lastmod>
     
