@@ -1,3 +1,13 @@
+## 博客打开太慢
+
+- 编辑主题配置文件，注释一行代码：
+
+```
+family: Lato
+```
+
+- 编辑`/themes/next/layout/_partials/head/external-fonts.swig`文件，把`fonts.googleapi.com`改为`fonts.useso.com`
+
 ## 指定不渲染文件
 
 - 在`Hexo`目录下的`source`目录下添加不需要渲染的文件：`test.html`
@@ -403,4 +413,3 @@ post_wordcount:
 ```
 
 - 在需要密码解锁的文章前设置`password: password`。后面的`password`自行设置。
-
